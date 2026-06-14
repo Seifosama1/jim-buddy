@@ -40,17 +40,21 @@
   <!-- App Shell -->
   <div id="app">
 
-    <!-- Header -->
+           <!-- Header -->
     <header id="app-header">
-      <button class="icon-btn" id="sound-toggle-btn" title="Sound on" onclick="SoundManager.toggle()">🔊</button>
+      <div class="header-left">
+        <button class="icon-btn" id="sound-toggle-btn" title="Sound on" onclick="SoundManager.toggle()">🔊</button>
+      </div>
       <div class="header-inner">
         <div class="header-logo">
           <span class="logo-icon">💪</span>
           <span class="logo-text">Jim Buddy</span>
+                  <button class="icon-btn" id="streak-btn" title="Streak">🔥 <span id="streak-count">0</span></button>
+
         </div>
-        <div class="header-actions">
-          <button class="icon-btn" id="streak-btn" title="Streak">🔥 <span id="streak-count">0</span></button>
-        </div>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" id="calculator-header-btn" title="Calorie Calculator" onclick="navigate('calculator')">🧮</button>
       </div>
     </header>
 
@@ -143,6 +147,20 @@
             </div>
           </div>
 
+          <!-- NEW: Personal Records Section on Home Page -->
+          <div class="card" style="margin-top: 8px;">
+            <div class="card-row">
+              <div>
+                <h3 class="card-title">🏆 Personal Records</h3>
+                <p class="card-sub">Your best lifts</p>
+              </div>
+              <button class="btn btn-sm btn-ghost" onclick="openRMModal()">1RM Calc</button>
+            </div>
+            <div id="home-pr-list" style="margin-top: 12px;">
+              <p class="muted-text">No PRs yet. Complete workouts or use 1RM calculator!</p>
+            </div>
+          </div>
+
           <!-- Recent Sessions -->
           <div class="section-header">
             <h2 class="section-title">Recent Sessions</h2>
@@ -187,6 +205,17 @@
             <div class="queue-actions" id="queue-actions" style="display: none;">
               <button class="btn btn-primary" style="flex:1" onclick="saveFullSession()">💾 Save Today's Session</button>
               <button class="btn btn-ghost" style="flex:0.3" onclick="clearWorkoutQueue()">🗑 Clear</button>
+            </div>
+          </div>
+
+          <!-- NEW: PR & 1RM Panel directly under Queue -->
+          <div class="workout-queue-panel" style="margin-bottom: 16px;">
+            <div class="workout-queue-header">
+              <span class="workout-queue-title">🏆 Personal Records & 1RM</span>
+              <button class="btn btn-sm btn-primary" onclick="openRMModal()" style="font-size:11px;padding:4px 10px;">🧮 1RM Calculator</button>
+            </div>
+            <div id="pr-list-workout" style="padding: 8px; max-height: 200px; overflow-y: auto;">
+              <p class="muted-text" style="text-align:center;">No PRs yet. Log a workout or use the calculator!</p>
             </div>
           </div>
 
@@ -488,306 +517,7 @@
         </div>
       </section>
 
-    </main>
-
-    <!-- Bottom Nav -->
-    <nav id="bottom-nav">
-      <button class="nav-btn" data-page="schedule" onclick="navigate('schedule')">
-        <span class="nav-icon">📅</span>
-        <span class="nav-label">Schedule</span>
-      </button>
-      <button class="nav-btn" data-page="workouts" onclick="navigate('workouts')">
-        <span class="nav-icon">💪</span>
-        <span class="nav-label">Workouts</span>
-      </button>
-      <button class="nav-btn" data-page="progress" onclick="navigate('progress')">
-        <span class="nav-icon">📊</span>
-        <span class="nav-label">Progress</span>
-      </button>
-      <button class="nav-btn active" data-page="home" onclick="navigate('home')">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Home</span>
-      </button>
-      <button class="nav-btn" data-page="goals" onclick="navigate('goals')">
-        <span class="nav-icon">🎯</span>
-        <span class="nav-label">Goals</span>
-      </button>
-      <button class="nav-btn" data-page="water" onclick="navigate('water')">
-        <span class="nav-icon">💧</span>
-        <span class="nav-label">Water</span>
-      </button>
-            <button class="nav-btn" data-page="calorie" onclick="navigate('calorie')">
-        <span class="nav-icon">🍽️</span>
-        <span class="nav-label">Food</span>
-      </button>
-      <button class="nav-btn" data-page="calculator" onclick="navigate('calculator')">
-        <span class="nav-icon">📲</span>
-        <span class="nav-label">Calculator</span>
-      </button>
-    </nav>
-  </div>
-
-  <!-- ═══════════════════ MODALS ═══════════════════ -->
-
-  <!-- Create/Edit Workout Modal -->
-  <div class="modal-overlay" id="workout-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="workout-modal-title">Create Workout</h3>
-        <button class="icon-btn" onclick="closeModal('workout-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Workout Name</label>
-          <input type="text" class="form-input" id="wm-name" placeholder="e.g. Push Day A" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Muscle Group</label>
-          <select class="form-input" id="wm-muscle">
-            <option>Chest</option><option>Back</option><option>Shoulders</option>
-            <option>Legs</option><option>Arms</option><option>Core</option><option>Cardio</option><option>Full Body</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Sets</label>
-<input type="number" class="form-input" id="wm-sets" placeholder="3" min="1" max="20" inputmode="numeric" pattern="[0-9]*" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Reps</label>
-<input type="number" class="form-input" id="wm-reps" placeholder="10" min="1" max="100" inputmode="numeric" pattern="[0-9]*" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Rest Time (seconds)</label>
-<input type="number" class="form-input" id="wm-rest" placeholder="60" min="0" inputmode="numeric" pattern="[0-9]*" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Notes (optional)</label>
-          <textarea class="form-input" id="wm-notes" rows="2" placeholder="Tips, variations…"></textarea>
-        </div>
-    </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('session-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveQueuedExercise()">Save Exercise</button>
-      </div>
-      </div>
-  </div>
-
-  <!-- Session Logger Modal -->
-  <  <!-- Session Logger Modal -->
-  <div class="modal-overlay" id="session-modal">
-    <div class="modal modal--tall">
-      <div class="modal-header">
-        <h3 id="session-modal-title">Log Session</h3>
-        <button class="icon-btn" onclick="closeModal('session-modal')">✕</button>
-      </div>
-      <div class="modal-body" id="session-modal-body">
-        <!-- dynamically filled -->
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('session-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveQueuedExercise()">Save Exercise</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add Weekly Goal Modal -->
-  <div class="modal-overlay" id="goal-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Add Weekly Goal</h3>
-        <button class="icon-btn" onclick="closeModal('goal-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Exercise</label>
-          <select class="form-input" id="gm-exercise"></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Target Weight (kg)</label>
-          <input type="number" class="form-input" id="gm-weight" placeholder="e.g. 100" step="0.5" />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('goal-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveGoal()">Set Goal</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div id="toast" class="toast"></div>
-  <!-- Schedule Editor Modal -->
-  <div class="modal-overlay" id="schedule-modal">
-    <div class="modal modal--tall">
-      <div class="modal-header">
-        <h3 id="schedule-modal-title">Edit Day</h3>
-        <button class="icon-btn" onclick="closeModal('schedule-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Workout Name (optional)</label>
-          <input type="text" class="form-input" id="schedule-day-name" placeholder="e.g. Chest Day, Push Day" />
-        </div>
-        
-        <div class="section-header" style="margin-top:8px">
-          <h3 class="section-title">Exercises</h3>
-        </div>
-        <div id="schedule-workout-list" class="schedule-workout-list">
-          <!-- dynamic -->
-        </div>
-        
-        <div class="section-header" style="margin-top:16px">
-          <h3 class="section-title">Add Exercise</h3>
-        </div>
-        <div class="search-wrap" style="margin-bottom:8px">
-          <input type="text" class="search-input" id="schedule-exercise-search" placeholder="Search exercises..." oninput="filterScheduleExercises()" />
-        </div>
-        <div id="schedule-available-exercises" class="schedule-available-exercises">
-          <!-- dynamic -->
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('schedule-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveScheduleDay()">Save Day</button>
-      </div>
-    </div>
-  </div>
-  <!-- Edit Schedule Workout Modal -->
-  <div class="modal-overlay edit-workout-modal" id="edit-schedule-workout-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Edit Exercise</h3>
-        <button class="icon-btn" onclick="closeModal('edit-schedule-workout-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="edit-workout-header" id="edit-workout-header">
-          <!-- Dynamically populated -->
-        </div>
-        
-        <div class="edit-workout-fields">
-          <div class="edit-field-row">
-            <div class="edit-field-group">
-              <label>Sets</label>
-              <input type="number" id="edit-workout-sets" min="1" max="20" step="1" />
-            </div>
-            <div class="edit-field-group">
-              <label>Reps</label>
-              <input type="number" id="edit-workout-reps" min="1" max="100" step="1" />
-            </div>
-          </div>
-          
-          <div class="edit-field-group">
-            <label>Rest Time (seconds)</label>
-            <input type="number" id="edit-workout-rest" min="0" max="300" step="5" />
-          </div>
-          
-          <div class="edit-field-group">
-            <label>Notes (optional)</label>
-            <textarea id="edit-workout-notes" rows="3" placeholder="Add notes for this exercise..." style="width:100%;background:var(--bg3);border:1px solid var(--card-border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;padding:10px 12px;resize:none;"></textarea>
-          </div>
-        </div>
-        
-        <button class="delete-workout-btn" id="delete-schedule-workout-btn">
-          🗑 Delete from Schedule
-        </button>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('workout-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveWorkout()">Save Workout</button>
-      </div>
-    </div>
-  </div>
-    <!-- Add Food Modal -->
-  <div class="modal-overlay" id="add-food-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Add Food</h3>
-        <button class="icon-btn" onclick="closeModal('add-food-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Search Food</label>
-          <input type="text" class="form-input" id="food-search-input" placeholder="Type to search..." oninput="filterFoodList()" />
-        </div>
-        
-        <div id="food-search-results" class="food-search-results">
-          <!-- Dynamic food list -->
-        </div>
-        
-        <div class="divider">OR</div>
-        
-        <div class="form-group">
-          <label class="form-label">Custom Food Name</label>
-          <input type="text" class="form-input" id="custom-food-name" placeholder="e.g., My Protein Shake" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Calories</label>
-<input type="number" class="form-input" id="custom-calories" placeholder="kcal" inputmode="numeric" pattern="[0-9]*" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Protein (g)</label>
-<input type="number" class="form-input" id="custom-protein" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Carbs (g)</label>
-<input type="number" class="form-input" id="custom-carbs" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Fats (g)</label>
-<input type="number" class="form-input" id="custom-fats" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Serving Size</label>
-          <input type="text" class="form-input" id="custom-serving" placeholder="e.g., 1 cup, 100g" value="1 serving" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Quantity</label>
-<input type="number" class="form-input" id="food-quantity" value="1" step="0.5" min="0.5" inputmode="decimal" pattern="[0-9]*" />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('add-food-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="addFoodToLog()">Add to Log</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Calorie Goal Modal -->
-  <div class="modal-overlay" id="calorie-goal-modal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Set Daily Calorie Goal</h3>
-        <button class="icon-btn" onclick="closeModal('calorie-goal-modal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label class="form-label">Daily Calorie Target</label>
-<input type="number" class="form-input" id="calorie-goal-input" placeholder="2000" inputmode="numeric" pattern="[0-9]*" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Protein Goal (g)</label>
-<input type="number" class="form-input" id="protein-goal-input" placeholder="150" inputmode="numeric" pattern="[0-9]*" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Carbs Goal (g)</label>
-<input type="number" class="form-input" id="carbs-goal-input" placeholder="200" inputmode="numeric" pattern="[0-9]*" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Fats Goal (g)</label>
-<input type="number" class="form-input" id="fats-goal-input" placeholder="55" inputmode="numeric" pattern="[0-9]*" />
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('calorie-goal-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveCalorieGoals()">Save Goals</button>
-      </div>
-    </div>
-  </div>
-        <!-- ═══════════════════ CALORIE CALCULATOR ═══════════════════ -->
+      <!-- ═══════════════════ CALORIE CALCULATOR ═══════════════════ -->
       <section class="page" id="page-calculator">
         <div class="page-scroll">
           <div class="page-header">
@@ -893,6 +623,306 @@
           </div>
         </div>
       </section>
+
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav id="bottom-nav">
+      <button class="nav-btn" data-page="schedule" onclick="navigate('schedule')">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Schedule</span>
+      </button>
+      <button class="nav-btn" data-page="workouts" onclick="navigate('workouts')">
+        <span class="nav-icon">💪</span>
+        <span class="nav-label">Workouts</span>
+      </button>
+      <button class="nav-btn" data-page="progress" onclick="navigate('progress')">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Progress</span>
+      </button>
+      <button class="nav-btn active" data-page="home" onclick="navigate('home')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-btn" data-page="goals" onclick="navigate('goals')">
+        <span class="nav-icon">🎯</span>
+        <span class="nav-label">Goals</span>
+      </button>
+      <button class="nav-btn" data-page="water" onclick="navigate('water')">
+        <span class="nav-icon">💧</span>
+        <span class="nav-label">Water</span>
+      </button>
+      <button class="nav-btn" data-page="calorie" onclick="navigate('calorie')">
+        <span class="nav-icon">🍽️</span>
+        <span class="nav-label">Food</span>
+      </button>
+  
+    </nav>
+  </div>
+
+  <!-- ═══════════════════ MODALS ═══════════════════ -->
+
+  <!-- Create/Edit Workout Modal -->
+  <div class="modal-overlay" id="workout-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="workout-modal-title">Create Workout</h3>
+        <button class="icon-btn" onclick="closeModal('workout-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Workout Name</label>
+          <input type="text" class="form-input" id="wm-name" placeholder="e.g. Push Day A" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Muscle Group</label>
+          <select class="form-input" id="wm-muscle">
+            <option>Chest</option><option>Back</option><option>Shoulders</option>
+            <option>Legs</option><option>Arms</option><option>Core</option><option>Cardio</option><option>Full Body</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sets</label>
+<input type="number" class="form-input" id="wm-sets" placeholder="3" min="1" max="20" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reps</label>
+<input type="number" class="form-input" id="wm-reps" placeholder="10" min="1" max="100" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rest Time (seconds)</label>
+<input type="number" class="form-input" id="wm-rest" placeholder="60" min="0" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <textarea class="form-input" id="wm-notes" rows="2" placeholder="Tips, variations…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('workout-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveWorkout()">Save Workout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Logger Modal -->
+  <div class="modal-overlay" id="session-modal">
+    <div class="modal modal--tall">
+      <div class="modal-header">
+        <h3 id="session-modal-title">Log Session</h3>
+        <button class="icon-btn" onclick="closeModal('session-modal')">✕</button>
+      </div>
+      <div class="modal-body" id="session-modal-body">
+        <!-- dynamically filled -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('session-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveQueuedExercise()">Save Exercise</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Weekly Goal Modal -->
+  <div class="modal-overlay" id="goal-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Weekly Goal</h3>
+        <button class="icon-btn" onclick="closeModal('goal-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Exercise</label>
+          <select class="form-input" id="gm-exercise"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Weight (kg)</label>
+          <input type="number" class="form-input" id="gm-weight" placeholder="e.g. 100" step="0.5" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('goal-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveGoal()">Set Goal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+  
+  <!-- Schedule Editor Modal -->
+  <div class="modal-overlay" id="schedule-modal">
+    <div class="modal modal--tall">
+      <div class="modal-header">
+        <h3 id="schedule-modal-title">Edit Day</h3>
+        <button class="icon-btn" onclick="closeModal('schedule-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Workout Name (optional)</label>
+          <input type="text" class="form-input" id="schedule-day-name" placeholder="e.g. Chest Day, Push Day" />
+        </div>
+        
+        <div class="section-header" style="margin-top:8px">
+          <h3 class="section-title">Exercises</h3>
+        </div>
+        <div id="schedule-workout-list" class="schedule-workout-list">
+          <!-- dynamic -->
+        </div>
+        
+        <div class="section-header" style="margin-top:16px">
+          <h3 class="section-title">Add Exercise</h3>
+        </div>
+        <div class="search-wrap" style="margin-bottom:8px">
+          <input type="text" class="search-input" id="schedule-exercise-search" placeholder="Search exercises..." oninput="filterScheduleExercises()" />
+        </div>
+        <div id="schedule-available-exercises" class="schedule-available-exercises">
+          <!-- dynamic -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('schedule-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveScheduleDay()">Save Day</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Edit Schedule Workout Modal -->
+  <div class="modal-overlay edit-workout-modal" id="edit-schedule-workout-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Exercise</h3>
+        <button class="icon-btn" onclick="closeModal('edit-schedule-workout-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="edit-workout-header" id="edit-workout-header">
+          <!-- Dynamically populated -->
+        </div>
+        
+        <div class="edit-workout-fields">
+          <div class="edit-field-row">
+            <div class="edit-field-group">
+              <label>Sets</label>
+              <input type="number" id="edit-workout-sets" min="1" max="20" step="1" />
+            </div>
+            <div class="edit-field-group">
+              <label>Reps</label>
+              <input type="number" id="edit-workout-reps" min="1" max="100" step="1" />
+            </div>
+          </div>
+          
+          <div class="edit-field-group">
+            <label>Rest Time (seconds)</label>
+            <input type="number" id="edit-workout-rest" min="0" max="300" step="5" />
+          </div>
+          
+          <div class="edit-field-group">
+            <label>Notes (optional)</label>
+            <textarea id="edit-workout-notes" rows="3" placeholder="Add notes for this exercise..." style="width:100%;background:var(--bg3);border:1px solid var(--card-border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;padding:10px 12px;resize:none;"></textarea>
+          </div>
+        </div>
+        
+        <button class="delete-workout-btn" id="delete-schedule-workout-btn">
+          🗑 Delete from Schedule
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('edit-schedule-workout-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveScheduleWorkoutEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Add Food Modal -->
+  <div class="modal-overlay" id="add-food-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Food</h3>
+        <button class="icon-btn" onclick="closeModal('add-food-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Search Food</label>
+          <input type="text" class="form-input" id="food-search-input" placeholder="Type to search..." oninput="filterFoodList()" />
+        </div>
+        
+        <div id="food-search-results" class="food-search-results">
+          <!-- Dynamic food list -->
+        </div>
+        
+        <div class="divider">OR</div>
+        
+        <div class="form-group">
+          <label class="form-label">Custom Food Name</label>
+          <input type="text" class="form-input" id="custom-food-name" placeholder="e.g., My Protein Shake" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Calories</label>
+<input type="number" class="form-input" id="custom-calories" placeholder="kcal" inputmode="numeric" pattern="[0-9]*" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Protein (g)</label>
+<input type="number" class="form-input" id="custom-protein" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Carbs (g)</label>
+<input type="number" class="form-input" id="custom-carbs" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fats (g)</label>
+<input type="number" class="form-input" id="custom-fats" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Serving Size</label>
+          <input type="text" class="form-input" id="custom-serving" placeholder="e.g., 1 cup, 100g" value="1 serving" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+<input type="number" class="form-input" id="food-quantity" value="1" step="0.5" min="0.5" inputmode="decimal" pattern="[0-9]*" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('add-food-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="addFoodToLog()">Add to Log</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calorie Goal Modal -->
+  <div class="modal-overlay" id="calorie-goal-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Set Daily Calorie Goal</h3>
+        <button class="icon-btn" onclick="closeModal('calorie-goal-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Daily Calorie Target</label>
+<input type="number" class="form-input" id="calorie-goal-input" placeholder="2000" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Protein Goal (g)</label>
+<input type="number" class="form-input" id="protein-goal-input" placeholder="150" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Carbs Goal (g)</label>
+<input type="number" class="form-input" id="carbs-goal-input" placeholder="200" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fats Goal (g)</label>
+<input type="number" class="form-input" id="fats-goal-input" placeholder="55" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('calorie-goal-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCalorieGoals()">Save Goals</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Load from Schedule Modal -->
   <div class="modal-overlay" id="load-schedule-modal">
     <div class="modal modal--tall">
@@ -908,6 +938,33 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('load-schedule-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW: 1RM Calculator Modal -->
+  <div class="modal-overlay" id="rm-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>🏆 1 Rep Max Calculator</h3>
+        <button class="icon-btn" onclick="closeModal('rm-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Exercise Name</label>
+          <input type="text" class="form-input" id="rm-exercise-name" placeholder="e.g., Bench Press, Squat, Deadlift" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Weight Lifted (kg)</label>
+          <input type="number" class="form-input" id="rm-weight" placeholder="Weight" step="0.5" inputmode="decimal" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Number of Reps</label>
+          <input type="number" class="form-input" id="rm-reps" placeholder="Reps performed (1-10)" min="1" max="10" />
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="calculateAndSavePR()">Calculate & Save PR</button>
+        <div id="rm-result" style="margin-top: 16px;"></div>
+        <p style="font-size:11px; color:var(--text3); margin-top:12px; text-align:center;">Formula: Weight × (1 + Reps/30) - Epley formula</p>
       </div>
     </div>
   </div>

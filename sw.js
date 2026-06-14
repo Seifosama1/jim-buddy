@@ -3,13 +3,15 @@
    Enables offline functionality
 ══════════════════════════════════════════ */
 
-const CACHE_NAME = 'jim-buddy-v1.0.0';
+const CACHE_NAME = 'jim-buddy-v2.0.0';
 const urlsToCache = [
-  '.',
-  'index.html',
-  'styles.css',
-  'app.js',
-  'workouts-data.js',
+  '/',
+  '/index.html',
+  '/styles.css',
+  '/app.js',
+  '/workouts-data.js',
+  '/sounds.js',
+  '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
 ];
@@ -42,7 +44,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - serve from cache first, then network
+// Fetch event - serve from cache first, then network (Cache First strategy)
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
@@ -66,19 +68,15 @@ self.addEventListener('fetch', event => {
           
           caches.open(CACHE_NAME)
             .then(cache => {
-              // Don't cache external APIs or dynamic content
-              if (!event.request.url.includes('chrome-extension') && 
-                  !event.request.url.includes('googleapis') &&
-                  !event.request.url.includes('cdn.jsdelivr')) {
-                cache.put(event.request, responseToCache);
-              }
+              // Cache the request
+              cache.put(event.request, responseToCache);
             });
           
           return response;
         }).catch(() => {
-          // Offline fallback for navigation requests
+          // Offline fallback - return a custom offline page or basic response
           if (event.request.mode === 'navigate') {
-            return caches.match('index.html');
+            return caches.match('/index.html');
           }
           return new Response('Offline - Content not available', {
             status: 503,
@@ -88,16 +86,3 @@ self.addEventListener('fetch', event => {
       })
   );
 });
-
-// Background sync for data persistence (optional)
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-data') {
-    event.waitUntil(syncData());
-  }
-});
-
-function syncData() {
-  // This can be expanded to sync data when back online
-  console.log('Background sync triggered');
-  return Promise.resolve();
-}

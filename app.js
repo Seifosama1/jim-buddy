@@ -149,6 +149,162 @@ function getData() {
   };
 }
 
+// ═══════════════════════════════════════════════════════════
+// NEW: 1 REP MAX CALCULATOR & PR RECORDER
+// ═══════════════════════════════════════════════════════════
+
+function calculate1RM(weight, reps) {
+  if (!weight || reps < 1) return 0;
+  // Epley formula: 1RM = weight * (1 + reps/30)
+  return Math.round(weight * (1 + reps / 30));
+}
+
+function openRMModal() {
+  document.getElementById('rm-exercise-name').value = '';
+  document.getElementById('rm-weight').value = '';
+  document.getElementById('rm-reps').value = '';
+  document.getElementById('rm-result').innerHTML = '';
+  openModal('rm-modal');
+}
+
+function calculateAndSavePR() {
+  const exerciseName = document.getElementById('rm-exercise-name').value.trim();
+  const weight = parseFloat(document.getElementById('rm-weight').value);
+  const reps = parseInt(document.getElementById('rm-reps').value);
+  
+  if (!exerciseName) {
+    toast('Please enter an exercise name');
+    return;
+  }
+  if (!weight || weight <= 0) {
+    toast('Please enter a valid weight');
+    return;
+  }
+  if (!reps || reps < 1 || reps > 10) {
+    toast('Please enter valid reps (1-10)');
+    return;
+  }
+  
+  const oneRM = calculate1RM(weight, reps);
+  const prs = getData().prs;
+  const exerciseId = exerciseName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const existing = prs[exerciseId];
+  
+  const resultDiv = document.getElementById('rm-result');
+  
+  if (!existing || oneRM > existing.weight) {
+    resultDiv.innerHTML = `
+      <div style="background:var(--accent-dim); padding:16px; border-radius:12px; text-align:center;">
+        <div style="font-size:32px; font-weight:900; color:var(--accent);">${oneRM} kg</div>
+        <div style="font-size:12px; color:var(--text2); margin:8px 0;">Estimated 1 Rep Max</div>
+        <button class="btn btn-primary" style="margin-top:8px;" onclick="savePRToRecords('${exerciseName.replace(/'/g, "\\'")}', ${oneRM})">🏆 Save as Personal Record</button>
+      </div>
+    `;
+  } else {
+    resultDiv.innerHTML = `
+      <div style="background:rgba(255,71,87,0.15); padding:16px; border-radius:12px; text-align:center;">
+        <div style="font-size:14px; color:var(--danger);">Current PR for ${exerciseName} is ${existing.weight} kg</div>
+        <div style="font-size:18px; margin:8px 0;">Estimated 1RM: ${oneRM} kg</div>
+        <div style="font-size:12px; color:var(--text2);">You need ${oneRM > existing.weight ? (oneRM - existing.weight).toFixed(1) : (existing.weight - oneRM).toFixed(1)} kg to beat your PR!</div>
+      </div>
+    `;
+  }
+}
+
+function savePRToRecords(exerciseName, oneRM) {
+  const prs = getData().prs;
+  const exerciseId = exerciseName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  
+  prs[exerciseId] = {
+    name: exerciseName,
+    weight: oneRM,
+    date: new Date().toISOString(),
+    oneRM: true
+  };
+  
+  DB.set('prs', prs);
+  toast(`🏆 New PR for ${exerciseName}: ${oneRM}kg!`);
+  closeModal('rm-modal');
+  renderPRLists();
+  renderDashboard();
+}
+
+function renderPRLists() {
+  const prs = getData().prs;
+  const entries = Object.values(prs).sort((a, b) => b.weight - a.weight);
+  
+  // Workout page PR list
+  const workoutContainer = document.getElementById('pr-list-workout');
+  if (workoutContainer) {
+    if (entries.length === 0) {
+      workoutContainer.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text2);">No PRs yet. Complete workouts or use 1RM calculator!</div>';
+    } else {
+      workoutContainer.innerHTML = entries.slice(0, 8).map(pr => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--card-border);">
+          <div>
+            <span style="font-weight:700;">🏆 ${escHtml(pr.name)}</span>
+            ${pr.oneRM ? '<span style="font-size:9px; background:var(--accent-dim); padding:2px 6px; border-radius:10px; margin-left:6px;">1RM</span>' : ''}
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:16px; font-weight:800; color:var(--accent);">${pr.weight} kg</span>
+            <button class="btn btn-sm btn-ghost" style="padding:4px 8px; font-size:10px;" onclick="editPR('${pr.name.replace(/'/g, "\\'")}', ${pr.weight})">✏️</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+  
+  // Home page PR list (under weight goal)
+  const homeContainer = document.getElementById('home-pr-list');
+  if (homeContainer) {
+    if (entries.length === 0) {
+      homeContainer.innerHTML = '<p class="muted-text" style="text-align:center;">No PRs yet. Complete workouts or use 1RM calculator!</p>';
+    } else {
+      homeContainer.innerHTML = entries.slice(0, 5).map(pr => `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--card-border);">
+          <span style="font-size:13px; font-weight:500;">🏆 ${escHtml(pr.name)}</span>
+          <span style="font-size:15px; font-weight:800; color:var(--accent);">${pr.weight} kg</span>
+        </div>
+      `).join('');
+    }
+  }
+  
+  // Progress page PR list
+  const progressContainer = document.getElementById('prs-list');
+  if (progressContainer && entries.length > 0) {
+    progressContainer.innerHTML = entries.map(pr => `
+      <div class="pr-card">
+        <div>
+          <div class="pr-name">${escHtml(pr.name)} ${pr.oneRM ? '<span style="font-size:10px;">(1RM)</span>' : ''}</div>
+          <div class="pr-date">${formatDate(pr.date)}</div>
+        </div>
+        <div class="pr-weight">${pr.weight}kg</div>
+      </div>
+    `).join('');
+  }
+}
+
+function editPR(exerciseName, currentWeight) {
+  const newWeight = prompt(`Edit PR for ${exerciseName}\nCurrent PR: ${currentWeight}kg\nEnter new weight (kg):`, currentWeight);
+  if (newWeight === null) return;
+  const weightNum = parseFloat(newWeight);
+  if (isNaN(weightNum) || weightNum <= 0) {
+    toast('Invalid weight');
+    return;
+  }
+  
+  const prs = getData().prs;
+  const exerciseId = exerciseName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  if (prs[exerciseId]) {
+    prs[exerciseId].weight = weightNum;
+    prs[exerciseId].date = new Date().toISOString();
+    DB.set('prs', prs);
+    toast(`Updated PR for ${exerciseName}: ${weightNum}kg`);
+    renderPRLists();
+    renderDashboard();
+  }
+}
+
 // ─── Calorie Tracker Functions ───────────────────────────
 function getTodayFoodLog() {
   const { foodLog } = getData();
@@ -174,92 +330,113 @@ function renderCalorieTracker() {
   const todayLog = getTodayFoodLog();
   
   // Update summary
-  document.getElementById('calorie-total').textContent = Math.round(totals.calories);
+  const calorieTotalEl = document.getElementById('calorie-total');
+  if (calorieTotalEl) calorieTotalEl.textContent = Math.round(totals.calories);
   const goalCal = calorieGoals?.calories || 2000;
-  document.getElementById('calorie-goal-text').textContent = goalCal;
+  const goalTextEl = document.getElementById('calorie-goal-text');
+  if (goalTextEl) goalTextEl.textContent = goalCal;
   const percent = Math.min(100, (totals.calories / goalCal) * 100);
-  document.getElementById('calorie-progress-bar').style.width = percent + '%';
+  const progressBar = document.getElementById('calorie-progress-bar');
+  if (progressBar) progressBar.style.width = percent + '%';
   
   // Update macros
-  document.getElementById('protein-total').textContent = Math.round(totals.protein);
-  document.getElementById('carbs-total').textContent = Math.round(totals.carbs);
-  document.getElementById('fats-total').textContent = Math.round(totals.fats);
+  const proteinEl = document.getElementById('protein-total');
+  const carbsEl = document.getElementById('carbs-total');
+  const fatsEl = document.getElementById('fats-total');
+  if (proteinEl) proteinEl.textContent = Math.round(totals.protein);
+  if (carbsEl) carbsEl.textContent = Math.round(totals.carbs);
+  if (fatsEl) fatsEl.textContent = Math.round(totals.fats);
   
   // Quick food grid
   const quickFoods = FOOD_DATABASE.slice(0, 9);
   const quickGrid = document.getElementById('quick-food-grid');
-  quickGrid.innerHTML = quickFoods.map(food => `
-    <div class="quick-food-item" onclick="quickAddFood('${food.id}')">
-      <span class="quick-food-name">${escHtml(food.name)}</span>
-      <span class="quick-food-calories">${food.calories} kcal</span>
-    </div>
-  `).join('');
-  
-  // Food log list
-  const logContainer = document.getElementById('food-log-list');
-  if (todayLog.length === 0) {
-    logContainer.innerHTML = '<p class="muted-text">No food logged today. Add your meals above!</p>';
-  } else {
-    logContainer.innerHTML = todayLog.map((item, idx) => `
-      <div class="food-log-item">
-        <div class="food-log-info">
-          <div class="food-log-name">
-            ${escHtml(item.name)}
-            <span class="food-log-serving">${item.serving || '1 serving'} × ${item.quantity}</span>
-          </div>
-          <div class="food-log-nutrition">
-            <span>🔥 ${Math.round(item.calories * item.quantity)} kcal</span>
-            <span>💪 ${(item.protein || 0) * item.quantity}g protein</span>
-            <span>🍚 ${(item.carbs || 0) * item.quantity}g carbs</span>
-            <span>🧈 ${(item.fats || 0) * item.quantity}g fats</span>
-          </div>
-        </div>
-        <div class="food-log-actions">
-          <button class="food-delete-btn" onclick="deleteFoodEntry(${idx})">🗑</button>
-        </div>
+  if (quickGrid) {
+    quickGrid.innerHTML = quickFoods.map(food => `
+      <div class="quick-food-item" onclick="quickAddFood('${food.id}')">
+        <span class="quick-food-name">${escHtml(food.name)}</span>
+        <span class="quick-food-calories">${food.calories} kcal</span>
       </div>
     `).join('');
   }
   
+  // Food log list
+  const logContainer = document.getElementById('food-log-list');
+  if (logContainer) {
+    if (todayLog.length === 0) {
+      logContainer.innerHTML = '<p class="muted-text">No food logged today. Add your meals above!</p>';
+    } else {
+      logContainer.innerHTML = todayLog.map((item, idx) => `
+        <div class="food-log-item">
+          <div class="food-log-info">
+            <div class="food-log-name">
+              ${escHtml(item.name)}
+              <span class="food-log-serving">${item.serving || '1 serving'} × ${item.quantity}</span>
+            </div>
+            <div class="food-log-nutrition">
+              <span>🔥 ${Math.round(item.calories * item.quantity)} kcal</span>
+              <span>💪 ${(item.protein || 0) * item.quantity}g protein</span>
+              <span>🍚 ${(item.carbs || 0) * item.quantity}g carbs</span>
+              <span>🧈 ${(item.fats || 0) * item.quantity}g fats</span>
+            </div>
+          </div>
+          <div class="food-log-actions">
+            <button class="food-delete-btn" onclick="deleteFoodEntry(${idx})">🗑</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+  
   // Meal suggestions
   const mealGrid = document.getElementById('meal-suggestions-grid');
-  const meals = [
-    { name: '🍳 Breakfast: Eggs + Oats', foods: ['egg', 'oatmeal'] },
-    { name: '🥗 Lunch: Chicken + Rice', foods: ['chicken-breast', 'rice', 'broccoli'] },
-    { name: '🍌 Snack: Banana + Protein', foods: ['banana', 'protein-shake'] },
-    { name: '🐟 Dinner: Salmon + Veggies', foods: ['salmon', 'sweet-potato', 'broccoli'] }
-  ];
-  mealGrid.innerHTML = meals.map(meal => `
-    <div class="meal-suggestion" onclick="addMealSuggestion('${meal.foods.join(',')}')">
-      <span class="meal-suggestion-name">${meal.name}</span>
-    </div>
-  `).join('');
+  if (mealGrid) {
+    const meals = [
+      { name: '🍳 Breakfast: Eggs + Oats', foods: ['egg', 'oatmeal'] },
+      { name: '🥗 Lunch: Chicken + Rice', foods: ['chicken-breast', 'rice', 'broccoli'] },
+      { name: '🍌 Snack: Banana + Protein', foods: ['banana', 'protein-shake'] },
+      { name: '🐟 Dinner: Salmon + Veggies', foods: ['salmon', 'sweet-potato', 'broccoli'] }
+    ];
+    mealGrid.innerHTML = meals.map(meal => `
+      <div class="meal-suggestion" onclick="addMealSuggestion('${meal.foods.join(',')}')">
+        <span class="meal-suggestion-name">${meal.name}</span>
+      </div>
+    `).join('');
+  }
 }
 
 function quickAddFood(foodId) {
   const food = FOOD_DATABASE.find(f => f.id === foodId);
   if (food) {
     state.selectedFoodId = foodId;
-    document.getElementById('food-quantity').value = 1;
+    const quantityInput = document.getElementById('food-quantity');
+    if (quantityInput) quantityInput.value = 1;
     openAddFoodModal();
   }
 }
 
 function openAddFoodModal() {
-  document.getElementById('food-search-input').value = '';
-  document.getElementById('custom-food-name').value = '';
-  document.getElementById('custom-calories').value = '';
-  document.getElementById('custom-protein').value = '';
-  document.getElementById('custom-carbs').value = '';
-  document.getElementById('custom-fats').value = '';
-  document.getElementById('custom-serving').value = '1 serving';
-  document.getElementById('food-quantity').value = 1;
+  const searchInput = document.getElementById('food-search-input');
+  if (searchInput) searchInput.value = '';
+  const customName = document.getElementById('custom-food-name');
+  if (customName) customName.value = '';
+  const customCal = document.getElementById('custom-calories');
+  if (customCal) customCal.value = '';
+  const customProtein = document.getElementById('custom-protein');
+  if (customProtein) customProtein.value = '';
+  const customCarbs = document.getElementById('custom-carbs');
+  if (customCarbs) customCarbs.value = '';
+  const customFats = document.getElementById('custom-fats');
+  if (customFats) customFats.value = '';
+  const customServing = document.getElementById('custom-serving');
+  if (customServing) customServing.value = '1 serving';
+  const quantityInput = document.getElementById('food-quantity');
+  if (quantityInput) quantityInput.value = 1;
   filterFoodList();
   openModal('add-food-modal');
 }
 
 function filterFoodList() {
-  const searchTerm = document.getElementById('food-search-input').value.toLowerCase();
+  const searchTerm = document.getElementById('food-search-input')?.value.toLowerCase() || '';
   const { customFoods } = getData();
   const allFoods = [...FOOD_DATABASE, ...customFoods];
   const filtered = allFoods.filter(food => 
@@ -267,15 +444,17 @@ function filterFoodList() {
   );
   
   const resultsDiv = document.getElementById('food-search-results');
-  resultsDiv.innerHTML = filtered.map(food => `
-    <div class="food-search-item" onclick="selectFoodFromSearch('${food.id}')">
-      <div>
-        <div class="food-search-name">${escHtml(food.name)}</div>
-        <div class="food-search-serving">${food.serving || '1 serving'}</div>
+  if (resultsDiv) {
+    resultsDiv.innerHTML = filtered.map(food => `
+      <div class="food-search-item" onclick="selectFoodFromSearch('${food.id}')">
+        <div>
+          <div class="food-search-name">${escHtml(food.name)}</div>
+          <div class="food-search-serving">${food.serving || '1 serving'}</div>
+        </div>
+        <div class="food-search-calories">${food.calories} kcal</div>
       </div>
-      <div class="food-search-calories">${food.calories} kcal</div>
-    </div>
-  `).join('');
+    `).join('');
+  }
 }
 
 function selectFoodFromSearch(foodId) {
@@ -283,7 +462,8 @@ function selectFoodFromSearch(foodId) {
   const allFoods = [...FOOD_DATABASE, ...(getData().customFoods || [])];
   const food = allFoods.find(f => f.id === foodId);
   if (food) {
-    document.getElementById('food-quantity').focus();
+    const quantityInput = document.getElementById('food-quantity');
+    if (quantityInput) quantityInput.focus();
   }
 }
 
@@ -292,13 +472,13 @@ function addFoodToLog() {
   let food = null;
   
   // Check if custom food
-  const customName = document.getElementById('custom-food-name').value.trim();
+  const customName = document.getElementById('custom-food-name')?.value.trim() || '';
   if (customName) {
-    const calories = parseFloat(document.getElementById('custom-calories').value);
-    const protein = parseFloat(document.getElementById('custom-protein').value) || 0;
-    const carbs = parseFloat(document.getElementById('custom-carbs').value) || 0;
-    const fats = parseFloat(document.getElementById('custom-fats').value) || 0;
-    const serving = document.getElementById('custom-serving').value.trim() || '1 serving';
+    const calories = parseFloat(document.getElementById('custom-calories')?.value || 0);
+    const protein = parseFloat(document.getElementById('custom-protein')?.value || 0);
+    const carbs = parseFloat(document.getElementById('custom-carbs')?.value || 0);
+    const fats = parseFloat(document.getElementById('custom-fats')?.value || 0);
+    const serving = document.getElementById('custom-serving')?.value.trim() || '1 serving';
     
     if (!calories) {
       toast('Please enter calories for custom food');
@@ -328,7 +508,7 @@ function addFoodToLog() {
     return;
   }
   
-  const quantity = parseFloat(document.getElementById('food-quantity').value) || 1;
+  const quantity = parseFloat(document.getElementById('food-quantity')?.value) || 1;
   
   const foodLog = getData().foodLog;
   foodLog.push({
@@ -400,19 +580,23 @@ function addMealSuggestion(foodIds) {
 
 function openCalorieGoalModal() {
   const { calorieGoals } = getData();
-  document.getElementById('calorie-goal-input').value = calorieGoals?.calories || 2000;
-  document.getElementById('protein-goal-input').value = calorieGoals?.protein || 150;
-  document.getElementById('carbs-goal-input').value = calorieGoals?.carbs || 200;
-  document.getElementById('fats-goal-input').value = calorieGoals?.fats || 55;
+  const goalInput = document.getElementById('calorie-goal-input');
+  const proteinInput = document.getElementById('protein-goal-input');
+  const carbsInput = document.getElementById('carbs-goal-input');
+  const fatsInput = document.getElementById('fats-goal-input');
+  if (goalInput) goalInput.value = calorieGoals?.calories || 2000;
+  if (proteinInput) proteinInput.value = calorieGoals?.protein || 150;
+  if (carbsInput) carbsInput.value = calorieGoals?.carbs || 200;
+  if (fatsInput) fatsInput.value = calorieGoals?.fats || 55;
   openModal('calorie-goal-modal');
 }
 
 function saveCalorieGoals() {
   const goals = {
-    calories: parseInt(document.getElementById('calorie-goal-input').value) || 2000,
-    protein: parseInt(document.getElementById('protein-goal-input').value) || 150,
-    carbs: parseInt(document.getElementById('carbs-goal-input').value) || 200,
-    fats: parseInt(document.getElementById('fats-goal-input').value) || 55
+    calories: parseInt(document.getElementById('calorie-goal-input')?.value) || 2000,
+    protein: parseInt(document.getElementById('protein-goal-input')?.value) || 150,
+    carbs: parseInt(document.getElementById('carbs-goal-input')?.value) || 200,
+    fats: parseInt(document.getElementById('fats-goal-input')?.value) || 55
   };
   DB.set('calorieGoals', goals);
   closeModal('calorie-goal-modal');
@@ -647,10 +831,15 @@ function editScheduledWorkout(day, workoutIndex) {
   state.editingScheduleDay = day;
   state.editingScheduleWorkoutIndex = workoutIndex;
   
-  document.getElementById('edit-workout-sets').value = workout.sets || 3;
-  document.getElementById('edit-workout-reps').value = workout.reps || 10;
-  document.getElementById('edit-workout-rest').value = workout.rest || 60;
-  document.getElementById('edit-workout-notes').value = workout.notes || '';
+  const setsInput = document.getElementById('edit-workout-sets');
+  const repsInput = document.getElementById('edit-workout-reps');
+  const restInput = document.getElementById('edit-workout-rest');
+  const notesInput = document.getElementById('edit-workout-notes');
+  
+  if (setsInput) setsInput.value = workout.sets || 3;
+  if (repsInput) repsInput.value = workout.reps || 10;
+  if (restInput) restInput.value = workout.rest || 60;
+  if (notesInput) notesInput.value = workout.notes || '';
   
   const headerEl = document.getElementById('edit-workout-header');
   if (headerEl) {
@@ -685,10 +874,10 @@ function saveScheduleWorkoutEdit() {
     return;
   }
   
-  const newSets = parseInt(document.getElementById('edit-workout-sets').value) || 3;
-  const newReps = parseInt(document.getElementById('edit-workout-reps').value) || 10;
-  const newRest = parseInt(document.getElementById('edit-workout-rest').value) || 60;
-  const newNotes = document.getElementById('edit-workout-notes').value.trim();
+  const newSets = parseInt(document.getElementById('edit-workout-sets')?.value) || 3;
+  const newReps = parseInt(document.getElementById('edit-workout-reps')?.value) || 10;
+  const newRest = parseInt(document.getElementById('edit-workout-rest')?.value) || 60;
+  const newNotes = document.getElementById('edit-workout-notes')?.value.trim() || '';
   
   dayData.workouts[workoutIndex] = {
     ...dayData.workouts[workoutIndex],
@@ -905,7 +1094,8 @@ function navigate(page) {
 function updateGreeting() {
   const h = new Date().getHours();
   const g = h < 12 ? 'Good morning 👋' : h < 17 ? 'Good afternoon 👋' : 'Good evening 👋';
-  document.getElementById('greeting-title').textContent = g;
+  const greetingEl = document.getElementById('greeting-title');
+  if (greetingEl) greetingEl.textContent = g;
 }
 
 function calcStreak(sessions) {
@@ -963,16 +1153,24 @@ function renderDashboard() {
   const { sessions, prs, settings, waterLog, weightLog, weightLossGoal } = getData();
 
   const streak = calcStreak(sessions);
-  document.getElementById('stat-sessions').textContent = sessions.length;
-  document.getElementById('stat-prs').textContent = Object.keys(prs).length;
-  document.getElementById('stat-streak').textContent = streak;
-  document.getElementById('streak-count').textContent = streak;
+  const sessionsEl = document.getElementById('stat-sessions');
+  const prsEl = document.getElementById('stat-prs');
+  const streakEl = document.getElementById('stat-streak');
+  const streakCountEl = document.getElementById('streak-count');
+  if (sessionsEl) sessionsEl.textContent = sessions.length;
+  if (prsEl) prsEl.textContent = Object.keys(prs).length;
+  if (streakEl) streakEl.textContent = streak;
+  if (streakCountEl) streakCountEl.textContent = streak;
 
   const todayWater = getTodayWater(waterLog);
   const goal = settings.waterGoal || 2000;
-  document.getElementById('dash-water-text').textContent = `${todayWater} / ${goal} ml`;
-  document.getElementById('dash-water-bar').style.width = Math.min(100, (todayWater / goal) * 100) + '%';
+  const waterTextEl = document.getElementById('dash-water-text');
+  const waterBarEl = document.getElementById('dash-water-bar');
+  if (waterTextEl) waterTextEl.textContent = `${todayWater} / ${goal} ml`;
+  if (waterBarEl) waterBarEl.style.width = Math.min(100, (todayWater / goal) * 100) + '%';
 
+  const wlTextEl = document.getElementById('dash-wl-text');
+  const wlBarEl = document.getElementById('dash-wl-bar');
   if (weightLossGoal && weightLog.length > 0) {
     const latest = weightLog[weightLog.length - 1].weight;
     const start = weightLossGoal.currentWeight;
@@ -980,27 +1178,34 @@ function renderDashboard() {
     const lost = start - latest;
     const toGo = latest - target;
     const pct = Math.min(100, Math.max(0, ((start - latest) / (start - target)) * 100));
-    document.getElementById('dash-wl-text').textContent = `${latest}kg → ${target}kg (${toGo > 0 ? toGo.toFixed(1) + 'kg to go' : '🎉 Goal reached!'})`;
-    document.getElementById('dash-wl-bar').style.width = pct + '%';
+    if (wlTextEl) wlTextEl.textContent = `${latest}kg → ${target}kg (${toGo > 0 ? toGo.toFixed(1) + 'kg to go' : '🎉 Goal reached!'})`;
+    if (wlBarEl) wlBarEl.style.width = pct + '%';
   } else if (weightLossGoal) {
-    document.getElementById('dash-wl-text').textContent = `Goal: ${weightLossGoal.targetWeight}kg`;
+    if (wlTextEl) wlTextEl.textContent = `Goal: ${weightLossGoal.targetWeight}kg`;
   } else {
-    document.getElementById('dash-wl-text').textContent = 'Not set';
+    if (wlTextEl) wlTextEl.textContent = 'Not set';
   }
 
   const recentEl = document.getElementById('recent-sessions-list');
-  if (sessions.length === 0) {
-    recentEl.innerHTML = `<div class="empty-state"><span class="empty-icon">🏋️</span><p>No sessions yet. Start your first workout!</p><button class="btn btn-primary" onclick="navigate('workouts')">Browse Workouts</button></div>`;
-  } else {
-    recentEl.innerHTML = sessions.slice(-3).reverse().map(s => sessionCardHTML(s)).join('');
+  if (recentEl) {
+    if (sessions.length === 0) {
+      recentEl.innerHTML = `<div class="empty-state"><span class="empty-icon">🏋️</span><p>No sessions yet. Start your first workout!</p><button class="btn btn-primary" onclick="navigate('workouts')">Browse Workouts</button></div>`;
+    } else {
+      recentEl.innerHTML = sessions.slice(-3).reverse().map(s => sessionCardHTML(s)).join('');
+    }
   }
 
   const grid = document.getElementById('quick-muscle-grid');
-  grid.innerHTML = MUSCLE_GROUPS.filter(m => m !== 'All').map(m => `
-    <div class="muscle-chip" onclick="navigate('workouts'); setMuscleFilter('${m}')">
-      <span class="muscle-chip-icon">${MUSCLE_EMOJIS[m] || '💪'}</span>
-      <span>${m}</span>
-    </div>`).join('');
+  if (grid) {
+    grid.innerHTML = MUSCLE_GROUPS.filter(m => m !== 'All').map(m => `
+      <div class="muscle-chip" onclick="navigate('workouts'); setMuscleFilter('${m}')">
+        <span class="muscle-chip-icon">${MUSCLE_EMOJIS[m] || '💪'}</span>
+        <span>${m}</span>
+      </div>`).join('');
+  }
+  
+  // Render PR lists on dashboard
+  renderPRLists();
 }
 
 // ─── Workouts ────────────────────────────────────────────
@@ -1008,10 +1213,13 @@ function renderWorkouts() {
   renderMuscleChips();
   filterExercises();
   renderCustomWorkouts();
+  renderWorkoutQueue();
+  renderPRLists(); // Make sure PRs show in workouts tab
 }
 
 function renderMuscleChips() {
   const el = document.getElementById('muscle-chips');
+  if (!el) return;
   el.innerHTML = MUSCLE_GROUPS.map(m =>
     `<button class="chip ${state.muscleFilter === m ? 'active' : ''}" onclick="setMuscleFilter('${m}')">${m}</button>`
   ).join('');
@@ -1024,7 +1232,7 @@ function setMuscleFilter(m) {
 }
 
 function filterExercises() {
-  const q = document.getElementById('exercise-search').value.toLowerCase();
+  const q = document.getElementById('exercise-search')?.value.toLowerCase() || '';
   const { prs } = getData();
   let exercises = EXERCISE_LIBRARY;
   if (state.muscleFilter !== 'All') exercises = exercises.filter(e => e.muscle === state.muscleFilter);
@@ -1034,6 +1242,7 @@ function filterExercises() {
   exercises.forEach(e => { if (!groups[e.muscle]) groups[e.muscle] = []; groups[e.muscle].push(e); });
 
   const el = document.getElementById('exercise-list');
+  if (!el) return;
   if (exercises.length === 0) { el.innerHTML = '<p class="muted-text">No exercises found.</p>'; return; }
 
   el.innerHTML = Object.entries(groups).map(([muscle, exs]) => `
@@ -1057,6 +1266,7 @@ function filterExercises() {
 function renderCustomWorkouts() {
   const { customWorkouts } = getData();
   const el = document.getElementById('custom-workouts-list');
+  if (!el) return;
   if (!customWorkouts.length) { el.innerHTML = '<p class="muted-text">No custom workouts yet.</p>'; return; }
   el.innerHTML = customWorkouts.map(w => `
     <div class="exercise-card">
@@ -1075,9 +1285,14 @@ function renderCustomWorkouts() {
 // Create / Edit Workout
 document.getElementById('create-workout-btn').onclick = () => {
   state.editingWorkoutId = null;
-  document.getElementById('workout-modal-title').textContent = 'Create Workout';
-  ['wm-name','wm-sets','wm-reps','wm-rest','wm-notes'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('wm-muscle').value = 'Chest';
+  const titleEl = document.getElementById('workout-modal-title');
+  if (titleEl) titleEl.textContent = 'Create Workout';
+  ['wm-name','wm-sets','wm-reps','wm-rest','wm-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const muscleSelect = document.getElementById('wm-muscle');
+  if (muscleSelect) muscleSelect.value = 'Chest';
   openModal('workout-modal');
 };
 
@@ -1086,27 +1301,34 @@ function editWorkout(id) {
   const w = customWorkouts.find(x => x.id === id);
   if (!w) return;
   state.editingWorkoutId = id;
-  document.getElementById('workout-modal-title').textContent = 'Edit Workout';
-  document.getElementById('wm-name').value = w.name;
-  document.getElementById('wm-muscle').value = w.muscle;
-  document.getElementById('wm-sets').value = w.sets;
-  document.getElementById('wm-reps').value = w.reps;
-  document.getElementById('wm-rest').value = w.rest;
-  document.getElementById('wm-notes').value = w.notes || '';
+  const titleEl = document.getElementById('workout-modal-title');
+  if (titleEl) titleEl.textContent = 'Edit Workout';
+  const nameEl = document.getElementById('wm-name');
+  const muscleEl = document.getElementById('wm-muscle');
+  const setsEl = document.getElementById('wm-sets');
+  const repsEl = document.getElementById('wm-reps');
+  const restEl = document.getElementById('wm-rest');
+  const notesEl = document.getElementById('wm-notes');
+  if (nameEl) nameEl.value = w.name;
+  if (muscleEl) muscleEl.value = w.muscle;
+  if (setsEl) setsEl.value = w.sets;
+  if (repsEl) repsEl.value = w.reps;
+  if (restEl) restEl.value = w.rest;
+  if (notesEl) notesEl.value = w.notes || '';
   openModal('workout-modal');
 }
 
 function saveWorkout() {
-  const name = document.getElementById('wm-name').value.trim();
+  const name = document.getElementById('wm-name')?.value.trim();
   if (!name) { toast('Please enter a workout name'); return; }
   const w = {
     id: state.editingWorkoutId || 'cw_' + Date.now(),
     name,
-    muscle: document.getElementById('wm-muscle').value,
-    sets: parseInt(document.getElementById('wm-sets').value) || 3,
-    reps: parseInt(document.getElementById('wm-reps').value) || 10,
-    rest: parseInt(document.getElementById('wm-rest').value) || 60,
-    notes: document.getElementById('wm-notes').value.trim(),
+    muscle: document.getElementById('wm-muscle')?.value || 'Full Body',
+    sets: parseInt(document.getElementById('wm-sets')?.value) || 3,
+    reps: parseInt(document.getElementById('wm-reps')?.value) || 10,
+    rest: parseInt(document.getElementById('wm-rest')?.value) || 60,
+    notes: document.getElementById('wm-notes')?.value.trim() || '',
   };
   let cw = getData().customWorkouts;
   if (state.editingWorkoutId) { cw = cw.map(x => x.id === state.editingWorkoutId ? w : x); }
@@ -1141,7 +1363,8 @@ function startSessionForCustom(id) {
 
 function openSessionModal(exercise) {
   state.activeSession = { exercise, sets: [] };
-  document.getElementById('session-modal-title').textContent = exercise.name;
+  const titleEl = document.getElementById('session-modal-title');
+  if (titleEl) titleEl.textContent = exercise.name;
   const body = document.getElementById('session-modal-body');
   const sets = exercise.sets || 3;
   const isCardio = exercise.isCardio;
@@ -1194,8 +1417,8 @@ function toggleWeightUnit() {
   const btn = document.getElementById('unit-toggle');
   if (btn) {
     const opts = btn.querySelectorAll('.unit-option');
-    opts[0].classList.toggle('active', !isLb); // kg
-    opts[1].classList.toggle('active', isLb);  // lb
+    if (opts[0]) opts[0].classList.toggle('active', !isLb); // kg
+    if (opts[1]) opts[1].classList.toggle('active', isLb);  // lb
   }
 
   // Convert existing values in inputs
@@ -1317,6 +1540,7 @@ function saveSession() {
       prs[ex.id] = { weight: maxWeight, date: new Date().toISOString(), name: ex.name };
       DB.set('prs', prs);
       toast('🏆 New PR! ' + maxWeight + 'kg');
+      renderPRLists();
     }
     
     sessionData = {
@@ -1363,6 +1587,7 @@ function renderProgress() {
 
 function populateChartSelect(sessions) {
   const select = document.getElementById('chart-exercise-select');
+  if (!select) return;
   const ids = [...new Set(sessions.filter(s => s.type === 'strength').flatMap(s => s.exercises.map(e => e.id || e.name)))];
   const exerciseMap = {};
   sessions.filter(s => s.type === 'strength').forEach(s => s.exercises.forEach(e => { exerciseMap[e.id || e.name] = e.name; }));
@@ -1374,6 +1599,7 @@ function populateChartSelect(sessions) {
 let chartInstance = null;
 function renderChart() {
   const select = document.getElementById('chart-exercise-select');
+  if (!select) return;
   const exId = select.value;
   const { sessions } = getData();
   const canvas = document.getElementById('progress-chart');
@@ -1419,6 +1645,7 @@ function renderChart() {
 
 function renderPRs(prs) {
   const el = document.getElementById('prs-list');
+  if (!el) return;
   const entries = Object.entries(prs);
   if (!entries.length) { el.innerHTML = '<p class="muted-text">Complete sessions to see your PRs.</p>'; return; }
   el.innerHTML = entries.sort((a,b) => new Date(b[1].date) - new Date(a[1].date)).map(([,pr]) => `
@@ -1433,6 +1660,7 @@ function renderPRs(prs) {
 
 function renderSessionHistory(sessions) {
   const el = document.getElementById('session-history-list');
+  if (!el) return;
   if (!sessions.length) { 
     el.innerHTML = '<p class="muted-text">No sessions logged yet.</p>'; 
     return; 
@@ -1487,14 +1715,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 document.getElementById('add-goal-btn').onclick = () => {
   const allEx = [...EXERCISE_LIBRARY, ...getData().customWorkouts];
   const select = document.getElementById('gm-exercise');
-  select.innerHTML = allEx.map(e => `<option value="${e.id}">${escHtml(e.name)}</option>`).join('');
-  document.getElementById('gm-weight').value = '';
+  if (select) {
+    select.innerHTML = allEx.map(e => `<option value="${e.id}">${escHtml(e.name)}</option>`).join('');
+  }
+  const weightInput = document.getElementById('gm-weight');
+  if (weightInput) weightInput.value = '';
   openModal('goal-modal');
 };
 
 function saveGoal() {
-  const exId = document.getElementById('gm-exercise').value;
-  const weight = parseFloat(document.getElementById('gm-weight').value);
+  const exId = document.getElementById('gm-exercise')?.value;
+  const weight = parseFloat(document.getElementById('gm-weight')?.value);
   if (!weight) { toast('Enter a target weight'); return; }
   const allEx = [...EXERCISE_LIBRARY, ...getData().customWorkouts];
   const ex = allEx.find(e => e.id === exId);
@@ -1513,6 +1744,7 @@ function saveGoal() {
 function renderWeeklyGoals() {
   const { weeklyGoals, prs } = getData();
   const el = document.getElementById('weekly-goals-list');
+  if (!el) return;
   const weekStart = getWeekStart();
   const thisWeek = weeklyGoals.filter(g => g.weekStart === weekStart);
   if (!thisWeek.length) {
@@ -1550,9 +1782,9 @@ function deleteGoal(id) {
 
 // Weight Loss Goal
 function saveWeightLossGoal() {
-  const current = parseFloat(document.getElementById('wl-current').value);
-  const target = parseFloat(document.getElementById('wl-target').value);
-  const date = document.getElementById('wl-date').value;
+  const current = parseFloat(document.getElementById('wl-current')?.value);
+  const target = parseFloat(document.getElementById('wl-target')?.value);
+  const date = document.getElementById('wl-date')?.value;
   if (!current || !target || !date) { toast('Fill in all fields'); return; }
   if (target >= current) { toast('Target should be less than current weight'); return; }
   DB.set('weightLossGoal', { currentWeight: current, targetWeight: target, targetDate: date, createdAt: new Date().toISOString() });
@@ -1561,12 +1793,13 @@ function saveWeightLossGoal() {
 }
 
 function logWeight() {
-  const w = parseFloat(document.getElementById('wl-log-weight').value);
+  const w = parseFloat(document.getElementById('wl-log-weight')?.value);
   if (!w) { toast('Enter a weight'); return; }
   const log = getData().weightLog;
   log.push({ weight: w, date: new Date().toISOString() });
   DB.set('weightLog', log);
-  document.getElementById('wl-log-weight').value = '';
+  const weightInput = document.getElementById('wl-log-weight');
+  if (weightInput) weightInput.value = '';
   toast('Weight logged!');
   renderWeightLossGoal();
   renderDashboard();
@@ -1575,16 +1808,19 @@ function logWeight() {
 function renderWeightLossGoal() {
   const { weightLossGoal, weightLog } = getData();
 
+  const currentInput = document.getElementById('wl-current');
+  const targetInput = document.getElementById('wl-target');
+  const dateInput = document.getElementById('wl-date');
   if (weightLossGoal) {
-    document.getElementById('wl-current').value = weightLossGoal.currentWeight;
-    document.getElementById('wl-target').value = weightLossGoal.targetWeight;
-    document.getElementById('wl-date').value = weightLossGoal.targetDate;
+    if (currentInput) currentInput.value = weightLossGoal.currentWeight;
+    if (targetInput) targetInput.value = weightLossGoal.targetWeight;
+    if (dateInput) dateInput.value = weightLossGoal.targetDate;
   }
 
   const displayEl = document.getElementById('wl-progress-display');
   const historyEl = document.getElementById('wl-history');
 
-  if (weightLossGoal && weightLog.length > 0) {
+  if (weightLossGoal && weightLog.length > 0 && displayEl) {
     const latest = weightLog[weightLog.length - 1].weight;
     const start = weightLossGoal.currentWeight;
     const target = weightLossGoal.targetWeight;
@@ -1609,23 +1845,25 @@ function renderWeightLossGoal() {
           <div class="progress-bar progress-bar--alt" style="width:${pct}%"></div>
         </div>
       </div>`;
-  } else if (weightLossGoal) {
+  } else if (weightLossGoal && displayEl) {
     displayEl.innerHTML = `<div class="card"><p class="muted-text">Log your weight to track progress.</p></div>`;
-  } else {
+  } else if (displayEl) {
     displayEl.innerHTML = '';
   }
 
-  historyEl.innerHTML = [...weightLog].reverse().slice(0, 10).map(entry => `
-    <div class="weight-log-item">
-      <span class="weight-log-val">${entry.weight} kg</span>
-      <span class="weight-log-date">${formatDate(entry.date)}</span>
-    </div>`).join('') || '<p class="muted-text">No weight entries yet.</p>';
+  if (historyEl) {
+    historyEl.innerHTML = [...weightLog].reverse().slice(0, 10).map(entry => `
+      <div class="weight-log-item">
+        <span class="weight-log-val">${entry.weight} kg</span>
+        <span class="weight-log-date">${formatDate(entry.date)}</span>
+      </div>`).join('') || '<p class="muted-text">No weight entries yet.</p>';
+  }
 }
 
 // Cardio Goals
 function saveCardioGoal() {
-  const minutes = parseInt(document.getElementById('cardio-goal-min').value) || 0;
-  const sessions = parseInt(document.getElementById('cardio-goal-sessions').value) || 0;
+  const minutes = parseInt(document.getElementById('cardio-goal-min')?.value) || 0;
+  const sessions = parseInt(document.getElementById('cardio-goal-sessions')?.value) || 0;
   if (!minutes && !sessions) { toast('Enter at least one goal'); return; }
   DB.set('cardioGoal', { minutesPerWeek: minutes, sessionsPerWeek: sessions, createdAt: new Date().toISOString() });
   toast('Cardio goal saved!');
@@ -1633,17 +1871,20 @@ function saveCardioGoal() {
 }
 
 function logCardio() {
-  const type = document.getElementById('cardio-log-type').value;
-  const duration = parseInt(document.getElementById('cardio-log-duration').value) || 0;
-  const distance = parseFloat(document.getElementById('cardio-log-distance').value) || null;
-  const calories = parseInt(document.getElementById('cardio-log-calories').value) || null;
+  const type = document.getElementById('cardio-log-type')?.value || 'Other';
+  const duration = parseInt(document.getElementById('cardio-log-duration')?.value) || 0;
+  const distance = parseFloat(document.getElementById('cardio-log-distance')?.value) || null;
+  const calories = parseInt(document.getElementById('cardio-log-calories')?.value) || null;
   if (!duration) { toast('Enter duration'); return; }
   const log = getData().cardioLog;
   log.push({ type, duration, distance, calories, date: new Date().toISOString() });
   DB.set('cardioLog', log);
-  document.getElementById('cardio-log-duration').value = '';
-  document.getElementById('cardio-log-distance').value = '';
-  document.getElementById('cardio-log-calories').value = '';
+  const durationInput = document.getElementById('cardio-log-duration');
+  const distanceInput = document.getElementById('cardio-log-distance');
+  const caloriesInput = document.getElementById('cardio-log-calories');
+  if (durationInput) durationInput.value = '';
+  if (distanceInput) distanceInput.value = '';
+  if (caloriesInput) caloriesInput.value = '';
   toast('Cardio logged! 🏃');
   renderCardioGoals();
 }
@@ -1651,9 +1892,11 @@ function logCardio() {
 function renderCardioGoals() {
   const { cardioGoal, cardioLog } = getData();
 
+  const minInput = document.getElementById('cardio-goal-min');
+  const sessionsInput = document.getElementById('cardio-goal-sessions');
   if (cardioGoal) {
-    document.getElementById('cardio-goal-min').value = cardioGoal.minutesPerWeek || '';
-    document.getElementById('cardio-goal-sessions').value = cardioGoal.sessionsPerWeek || '';
+    if (minInput) minInput.value = cardioGoal.minutesPerWeek || '';
+    if (sessionsInput) sessionsInput.value = cardioGoal.sessionsPerWeek || '';
   }
 
   const weekStart = getWeekStart();
@@ -1662,42 +1905,46 @@ function renderCardioGoals() {
   const totalSessions = thisWeekCardio.length;
 
   const progressEl = document.getElementById('cardio-goal-progress');
-  if (cardioGoal) {
-    const minPct = cardioGoal.minutesPerWeek ? Math.min(100, Math.round((totalMin / cardioGoal.minutesPerWeek) * 100)) : 0;
-    const sessPct = cardioGoal.sessionsPerWeek ? Math.min(100, Math.round((totalSessions / cardioGoal.sessionsPerWeek) * 100)) : 0;
-    progressEl.innerHTML = `
-      <div class="cardio-summary-row">
-        <div class="goal-card">
-          <div class="goal-name">⏱ Minutes</div>
-          <div class="goal-pct" style="font-size:22px;margin:6px 0">${totalMin}<span style="font-size:13px;color:var(--text2)">/${cardioGoal.minutesPerWeek || '?'}</span></div>
-          <div class="progress-bar-wrap"><div class="progress-bar" style="width:${minPct}%"></div></div>
-        </div>
-        <div class="goal-card">
-          <div class="goal-name">🏃 Sessions</div>
-          <div class="goal-pct" style="font-size:22px;margin:6px 0">${totalSessions}<span style="font-size:13px;color:var(--text2)">/${cardioGoal.sessionsPerWeek || '?'}</span></div>
-          <div class="progress-bar-wrap"><div class="progress-bar" style="width:${sessPct}%"></div></div>
-        </div>
-      </div>`;
-  } else {
-    progressEl.innerHTML = `<div class="card" style="margin-bottom:16px"><p class="muted-text">Set a cardio goal above to track progress.</p></div>`;
+  if (progressEl) {
+    if (cardioGoal) {
+      const minPct = cardioGoal.minutesPerWeek ? Math.min(100, Math.round((totalMin / cardioGoal.minutesPerWeek) * 100)) : 0;
+      const sessPct = cardioGoal.sessionsPerWeek ? Math.min(100, Math.round((totalSessions / cardioGoal.sessionsPerWeek) * 100)) : 0;
+      progressEl.innerHTML = `
+        <div class="cardio-summary-row">
+          <div class="goal-card">
+            <div class="goal-name">⏱ Minutes</div>
+            <div class="goal-pct" style="font-size:22px;margin:6px 0">${totalMin}<span style="font-size:13px;color:var(--text2)">/${cardioGoal.minutesPerWeek || '?'}</span></div>
+            <div class="progress-bar-wrap"><div class="progress-bar" style="width:${minPct}%"></div></div>
+          </div>
+          <div class="goal-card">
+            <div class="goal-name">🏃 Sessions</div>
+            <div class="goal-pct" style="font-size:22px;margin:6px 0">${totalSessions}<span style="font-size:13px;color:var(--text2)">/${cardioGoal.sessionsPerWeek || '?'}</span></div>
+            <div class="progress-bar-wrap"><div class="progress-bar" style="width:${sessPct}%"></div></div>
+          </div>
+        </div>`;
+    } else {
+      progressEl.innerHTML = `<div class="card" style="margin-bottom:16px"><p class="muted-text">Set a cardio goal above to track progress.</p></div>`;
+    }
   }
 
   const historyEl = document.getElementById('cardio-history');
-  if (!thisWeekCardio.length) {
-    historyEl.innerHTML = '<p class="muted-text">No cardio logged this week.</p>';
-    return;
-  }
-  historyEl.innerHTML = [...thisWeekCardio].reverse().map(c => `
-    <div class="cardio-card">
-      <span class="cardio-icon">${CARDIO_EMOJIS[c.type] || '💪'}</span>
-      <div class="cardio-info">
-        <div class="cardio-name">${escHtml(c.type)}</div>
-        <div class="cardio-meta">
-          ${c.distance ? `${c.distance}km · ` : ''}${c.calories ? `${c.calories} kcal · ` : ''}${formatDate(c.date)}
+  if (historyEl) {
+    if (!thisWeekCardio.length) {
+      historyEl.innerHTML = '<p class="muted-text">No cardio logged this week.</p>';
+      return;
+    }
+    historyEl.innerHTML = [...thisWeekCardio].reverse().map(c => `
+      <div class="cardio-card">
+        <span class="cardio-icon">${CARDIO_EMOJIS[c.type] || '💪'}</span>
+        <div class="cardio-info">
+          <div class="cardio-name">${escHtml(c.type)}</div>
+          <div class="cardio-meta">
+            ${c.distance ? `${c.distance}km · ` : ''}${c.calories ? `${c.calories} kcal · ` : ''}${formatDate(c.date)}
+          </div>
         </div>
-      </div>
-      <div class="cardio-duration">${c.duration}min</div>
-    </div>`).join('');
+        <div class="cardio-duration">${c.duration}min</div>
+      </div>`).join('');
+  }
 }
 
 // ─── Water ────────────────────────────────────────────────
@@ -1713,21 +1960,27 @@ function renderWater() {
     waterFill.style.height = pct + '%';
   }
   
-  document.getElementById('water-current-ml').textContent = today;
-  document.getElementById('water-goal-display').textContent = goal;
-  document.getElementById('water-goal-input').value = goal;
-  document.getElementById('water-pct').textContent = Math.round(pct) + '%';
+  const currentMl = document.getElementById('water-current-ml');
+  const goalDisplay = document.getElementById('water-goal-display');
+  const goalInput = document.getElementById('water-goal-input');
+  const pctEl = document.getElementById('water-pct');
+  if (currentMl) currentMl.textContent = today;
+  if (goalDisplay) goalDisplay.textContent = goal;
+  if (goalInput) goalInput.value = goal;
+  if (pctEl) pctEl.textContent = Math.round(pct) + '%';
 
   // Log
   const todayLogs = waterLog.filter(l => l.date.startsWith(new Date().toISOString().split('T')[0]));
   const el = document.getElementById('water-log-list');
-  el.innerHTML = todayLogs.length
-    ? [...todayLogs].reverse().map(l => `
-        <div class="water-log-item">
-          <span class="water-log-amount">+${l.amount}ml</span>
-          <span class="water-log-time">${formatTime12(l.date)}</span>
-        </div>`).join('')
-    : '<p class="muted-text">No water logged today yet.</p>';
+  if (el) {
+    el.innerHTML = todayLogs.length
+      ? [...todayLogs].reverse().map(l => `
+          <div class="water-log-item">
+            <span class="water-log-amount">+${l.amount}ml</span>
+            <span class="water-log-time">${formatTime12(l.date)}</span>
+          </div>`).join('')
+      : '<p class="muted-text">No water logged today yet.</p>';
+  }
 }
 
 function addWater(ml) {
@@ -1741,14 +1994,15 @@ function addWater(ml) {
 }
 
 function addWaterCustom() {
-  const val = parseInt(document.getElementById('water-custom-amount').value);
+  const val = parseInt(document.getElementById('water-custom-amount')?.value);
   if (!val || val <= 0) { toast('Enter a valid amount'); return; }
-  document.getElementById('water-custom-amount').value = '';
+  const customInput = document.getElementById('water-custom-amount');
+  if (customInput) customInput.value = '';
   addWater(val);
 }
 
 function setWaterGoal() {
-  const goal = parseInt(document.getElementById('water-goal-input').value);
+  const goal = parseInt(document.getElementById('water-goal-input')?.value);
   if (!goal || goal <= 0) { toast('Enter a valid goal'); return; }
   const settings = getData().settings;
   settings.waterGoal = goal;
@@ -1770,28 +2024,6 @@ function updateDashWater() {
   if (state.currentPage === 'home') renderDashboard();
 }
 
-// ─── Initialize ──────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  updateGreeting();
-  renderDashboard();
-  renderWorkouts();
-  renderCalorieTracker();
-  displaySavedProfile();
-  loadSavedProfile();
-  loadWorkoutQueue(); // Add this line
-
-  
-  const deleteBtn = document.getElementById('delete-schedule-workout-btn');
-  if (deleteBtn) {
-    deleteBtn.onclick = () => deleteScheduledWorkout();
-  }
-  
-  const goalDisplay = document.querySelector('.calorie-goal-display');
-  if (goalDisplay) {
-    goalDisplay.onclick = () => openCalorieGoalModal();
-  }
-  
-});
 // ─── Calorie Calculator Functions ─────────────────────────
 
 let selectedSex = 'male';
@@ -1809,11 +2041,11 @@ function selectSex(sex) {
 
 function calculateCalories() {
   // Get values
-  const age = parseInt(document.getElementById('calc-age').value);
-  const weight = parseFloat(document.getElementById('calc-weight').value);
-  const height = parseFloat(document.getElementById('calc-height').value);
-  const activity = parseFloat(document.getElementById('calc-activity').value);
-  const goal = document.getElementById('calc-goal').value;
+  const age = parseInt(document.getElementById('calc-age')?.value);
+  const weight = parseFloat(document.getElementById('calc-weight')?.value);
+  const height = parseFloat(document.getElementById('calc-height')?.value);
+  const activity = parseFloat(document.getElementById('calc-activity')?.value);
+  const goal = document.getElementById('calc-goal')?.value;
   
   // Validation
   if (!age || !weight || !height) {
@@ -1895,24 +2127,34 @@ function calculateCalories() {
   const carbsG = Math.round((goalCalories - (proteinG * 4) - (fatG * 9)) / 4);
   
   // Display results
-  document.getElementById('result-bmr').textContent = Math.round(bmr);
-  document.getElementById('result-maintenance').textContent = maintenance;
-  document.getElementById('result-goal').textContent = goalCalories;
+  const bmrEl = document.getElementById('result-bmr');
+  const maintenanceEl = document.getElementById('result-maintenance');
+  const goalEl = document.getElementById('result-goal');
+  const bmiDisplay = document.getElementById('bmi-display');
+  const macroEl = document.getElementById('macro-recommendation');
   
-  document.getElementById('bmi-display').innerHTML = `
-    <span class="bmi-value">BMI: ${bmi}</span>
-    <span class="bmi-category">(${bmiCategory})</span>
-  `;
+  if (bmrEl) bmrEl.textContent = Math.round(bmr);
+  if (maintenanceEl) maintenanceEl.textContent = maintenance;
+  if (goalEl) goalEl.textContent = goalCalories;
   
-  document.getElementById('macro-recommendation').innerHTML = `
-    <div class="macro-row"><span class="macro-name">💪 Protein</span><span class="macro-value">${proteinG}g (${Math.round(proteinG * 4)} kcal)</span></div>
-    <div class="macro-row"><span class="macro-name">🍚 Carbs</span><span class="macro-value">${carbsG}g (${Math.round(carbsG * 4)} kcal)</span></div>
-    <div class="macro-row"><span class="macro-name">🧈 Fats</span><span class="macro-value">${fatG}g (${Math.round(fatG * 9)} kcal)</span></div>
-    <div class="macro-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border);">
-      <span class="macro-name">🎯 Goal</span>
-      <span class="macro-value">${goalText}</span>
-    </div>
-  `;
+  if (bmiDisplay) {
+    bmiDisplay.innerHTML = `
+      <span class="bmi-value">BMI: ${bmi}</span>
+      <span class="bmi-category">(${bmiCategory})</span>
+    `;
+  }
+  
+  if (macroEl) {
+    macroEl.innerHTML = `
+      <div class="macro-row"><span class="macro-name">💪 Protein</span><span class="macro-value">${proteinG}g (${Math.round(proteinG * 4)} kcal)</span></div>
+      <div class="macro-row"><span class="macro-name">🍚 Carbs</span><span class="macro-value">${carbsG}g (${Math.round(carbsG * 4)} kcal)</span></div>
+      <div class="macro-row"><span class="macro-name">🧈 Fats</span><span class="macro-value">${fatG}g (${Math.round(fatG * 9)} kcal)</span></div>
+      <div class="macro-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--card-border);">
+        <span class="macro-name">🎯 Goal</span>
+        <span class="macro-value">${goalText}</span>
+      </div>
+    `;
+  }
   
   // Store calculation results
   state.lastCalculation = {
@@ -1925,20 +2167,23 @@ function calculateCalories() {
   };
   
   // Show results
-  document.getElementById('calculator-results').style.display = 'block';
+  const resultsDiv = document.getElementById('calculator-results');
+  if (resultsDiv) resultsDiv.style.display = 'block';
   
   // Scroll to results
-  document.getElementById('calculator-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (resultsDiv) resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
   
   toast('Calculation complete!');
 }
 
 function saveCalculatorProfile() {
-  const age = document.getElementById('calc-age').value;
-  const weight = document.getElementById('calc-weight').value;
-  const height = document.getElementById('calc-height').value;
-  const activity = document.getElementById('calc-activity').options[document.getElementById('calc-activity').selectedIndex].text;
-  const goal = document.getElementById('calc-goal').options[document.getElementById('calc-goal').selectedIndex].text;
+  const age = document.getElementById('calc-age')?.value;
+  const weight = document.getElementById('calc-weight')?.value;
+  const height = document.getElementById('calc-height')?.value;
+  const activitySelect = document.getElementById('calc-activity');
+  const activity = activitySelect?.options[activitySelect.selectedIndex]?.text;
+  const goalSelect = document.getElementById('calc-goal');
+  const goal = goalSelect?.options[goalSelect.selectedIndex]?.text;
   
   if (!age || !weight || !height) {
     toast('Please calculate your calories first');
@@ -1968,18 +2213,20 @@ function saveCalculatorProfile() {
 function displaySavedProfile() {
   const profile = DB.get('calculatorProfile', null);
   const lastCalc = DB.get('lastCalculation', null);
+  const savedProfileDiv = document.getElementById('saved-profile');
+  const savedInfoDiv = document.getElementById('saved-profile-info');
   
-  if (profile) {
-    document.getElementById('saved-profile').style.display = 'block';
-    document.getElementById('saved-profile-info').innerHTML = `
+  if (profile && savedProfileDiv && savedInfoDiv) {
+    savedProfileDiv.style.display = 'block';
+    savedInfoDiv.innerHTML = `
       <div>👤 ${profile.sex === 'male' ? 'Male' : 'Female'}, ${profile.age} years</div>
       <div>⚖️ ${profile.weight} kg · 📏 ${profile.height} cm</div>
       <div>🏃 ${profile.activity}</div>
       <div>🎯 ${profile.goal}</div>
       ${lastCalc ? `<div style="margin-top:8px;color:var(--accent)">🔥 ${lastCalc.calories} kcal/day</div>` : ''}
     `;
-  } else {
-    document.getElementById('saved-profile').style.display = 'none';
+  } else if (savedProfileDiv) {
+    savedProfileDiv.style.display = 'none';
   }
 }
 
@@ -1995,24 +2242,31 @@ function clearSavedProfile() {
 function loadSavedProfile() {
   const profile = DB.get('calculatorProfile', null);
   if (profile) {
-    document.getElementById('calc-age').value = profile.age;
-    document.getElementById('calc-weight').value = profile.weight;
-    document.getElementById('calc-height').value = profile.height;
+    const ageInput = document.getElementById('calc-age');
+    const weightInput = document.getElementById('calc-weight');
+    const heightInput = document.getElementById('calc-height');
+    if (ageInput) ageInput.value = profile.age;
+    if (weightInput) weightInput.value = profile.weight;
+    if (heightInput) heightInput.value = profile.height;
     selectSex(profile.sex);
     
     const activitySelect = document.getElementById('calc-activity');
-    for (let i = 0; i < activitySelect.options.length; i++) {
-      if (activitySelect.options[i].text === profile.activity) {
-        activitySelect.selectedIndex = i;
-        break;
+    if (activitySelect) {
+      for (let i = 0; i < activitySelect.options.length; i++) {
+        if (activitySelect.options[i].text === profile.activity) {
+          activitySelect.selectedIndex = i;
+          break;
+        }
       }
     }
     
     const goalSelect = document.getElementById('calc-goal');
-    for (let i = 0; i < goalSelect.options.length; i++) {
-      if (goalSelect.options[i].text === profile.goal) {
-        goalSelect.selectedIndex = i;
-        break;
+    if (goalSelect) {
+      for (let i = 0; i < goalSelect.options.length; i++) {
+        if (goalSelect.options[i].text === profile.goal) {
+          goalSelect.selectedIndex = i;
+          break;
+        }
       }
     }
     
@@ -2187,7 +2441,8 @@ function openQueueExerciseModal(queueIndex) {
     isQueued: true 
   };
   
-  document.getElementById('session-modal-title').textContent = `Log: ${exercise.name}`;
+  const titleEl = document.getElementById('session-modal-title');
+  if (titleEl) titleEl.textContent = `Log: ${exercise.name}`;
   const body = document.getElementById('session-modal-body');
   const sets = exercise.sets || 3;
   const isCardio = exercise.isCardio;
@@ -2344,6 +2599,7 @@ function saveQueuedExercise() {
         prs[exercise.id] = { weight: maxWeight, date: new Date().toISOString(), name: exercise.name };
         DB.set('prs', prs);
         setTimeout(() => toast('🏆 New PR! ' + maxWeight + 'kg'), 1000);
+        renderPRLists();
         if (typeof SoundManager !== 'undefined') SoundManager.playSuccess();
       }
     }
@@ -2427,13 +2683,14 @@ function saveFullSession() {
   if (typeof SoundManager !== 'undefined') SoundManager.playWorkoutComplete();
   toast(`🎉 Session saved! ${completedExercises.length} exercises, ${totalSets} sets completed`);
   
+  renderPRLists();
+  renderDashboard();
+  
   // Refresh UI
   if (state.currentPage === 'progress') renderProgress();
   if (state.currentPage === 'home') renderDashboard();
 }
 
-// Quick toggle exercise completion (for testing)
-// Quick toggle exercise completion (for testing)
 // Quick toggle exercise completion (for testing)
 function quickCompleteExercise(index) {
   const exercise = workoutQueue[index];
@@ -2502,7 +2759,6 @@ function quickCompleteExercise(index) {
 }
 
 // View full session details modal
-// View full session details modal
 function viewSessionDetails(sessionIndex) {
   const { sessions } = getData();
   const session = sessions[sessionIndex];
@@ -2511,7 +2767,7 @@ function viewSessionDetails(sessionIndex) {
   const modalBody = document.getElementById('session-modal-body');
   const modalTitle = document.getElementById('session-modal-title');
   
-  modalTitle.textContent = `${formatDate(session.date)} - Workout Details`;
+  if (modalTitle) modalTitle.textContent = `${formatDate(session.date)} - Workout Details`;
   
   // Calculate totals
   let totalSets = 0;
@@ -2625,7 +2881,7 @@ function viewSessionDetails(sessionIndex) {
     exercisesHtml += `</div></div>`;
   });
   
-  modalBody.innerHTML = exercisesHtml;
+  if (modalBody) modalBody.innerHTML = exercisesHtml;
   openModal('session-modal');
 }
 
@@ -2782,6 +3038,7 @@ function quickLogExercise(index) {
         prs[exercise.id] = { weight: weightNum, date: new Date().toISOString(), name: exercise.name };
         DB.set('prs', prs);
         setTimeout(() => toast('🏆 New PR! ' + weightNum + 'kg'), 1000);
+        renderPRLists();
       }
     }
   }
@@ -2799,3 +3056,48 @@ function quickLogExercise(index) {
 //   displaySavedProfile();
 //   loadSavedProfile();
 // }
+
+// ─── Initialize ──────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateGreeting();
+  renderDashboard();
+  renderWorkouts();
+  renderCalorieTracker();
+  displaySavedProfile();
+  loadSavedProfile();
+  loadWorkoutQueue();
+
+  
+  const deleteBtn = document.getElementById('delete-schedule-workout-btn');
+  if (deleteBtn) {
+    deleteBtn.onclick = () => deleteScheduledWorkout();
+  }
+  
+  const goalDisplay = document.querySelector('.calorie-goal-display');
+  if (goalDisplay) {
+    goalDisplay.onclick = () => openCalorieGoalModal();
+  }
+  
+  // Make PR functions globally available
+  window.calculate1RM = calculate1RM;
+  window.openRMModal = openRMModal;
+  window.calculateAndSavePR = calculateAndSavePR;
+  window.savePRToRecords = savePRToRecords;
+  window.renderPRLists = renderPRLists;
+  window.editPR = editPR;
+  
+});
+
+// ══════════════════════════════════════════
+// SERVICE WORKER REGISTRATION (Offline Support)
+// ══════════════════════════════════════════
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(registration) {
+      console.log('Service Worker registered successfully:', registration.scope);
+    }).catch(function(error) {
+      console.log('Service Worker registration failed:', error);
+    });
+  });
+}
