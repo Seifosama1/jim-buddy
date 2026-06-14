@@ -43,23 +43,23 @@
   <!-- App Shell -->
   <div id="app">
 
-   <header id="app-header">
-  <div class="header-left">
-    <button class="icon-btn" id="sound-toggle-btn">🔊</button>
-    <button class="icon-btn" id="performance-mode-btn" onclick="togglePerformanceMode()">⚡</button>
-  </div>
-  <div class="header-inner">
-    <div class="header-logo">
-      <span class="logo-icon">💪</span>
-      <span class="logo-text">Jim Buddy</span>
-          <button class="icon-btn" id="streak-btn">🔥 <span id="streak-count">0</span></button>
-
-    </div>
-  </div>
-  <div class="header-right">
-    <button class="icon-btn" id="calculator-header-btn" onclick="navigate('calculator')">🧮</button>
-  </div>
-</header>
+       <!-- Header -->
+    <header id="app-header">
+      <div class="header-left">
+        <button class="icon-btn" id="sound-toggle-btn" title="Sound on" onclick="SoundManager.toggle()">🔊</button>
+        <button class="icon-btn" id="performance-mode-btn" title="Performance Mode" onclick="togglePerformanceMode()">⚡</button>
+      </div>
+      <div class="header-inner">
+        <div class="header-logo">
+          <span class="logo-icon">💪</span>
+          <span class="logo-text">Jim Buddy</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" id="calculator-header-btn" title="Calorie Calculator" onclick="navigate('calculator')">🧮</button>
+        <button class="icon-btn" id="streak-btn" title="Streak">🔥 <span id="streak-count">0</span></button>
+      </div>
+    </header>
 
     <!-- Page Container -->
     <main id="pages">
