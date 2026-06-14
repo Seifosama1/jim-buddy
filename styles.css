@@ -3099,3 +3099,116 @@ canvas {
   }
 }
 
+
+/* ══════════════════════════════════════════
+   FORCE PERFORMANCE BUTTON VISIBILITY ON MOBILE
+══════════════════════════════════════════ */
+
+/* Override any hiding issues on real mobile devices */
+#performance-mode-btn {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Fix header layout for real mobile devices */
+.header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  min-width: 70px !important;
+  flex-shrink: 0 !important;
+}
+
+.header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  min-width: 70px !important;
+  flex-shrink: 0 !important;
+  justify-content: flex-end !important;
+}
+
+.header-inner {
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.header-logo {
+  white-space: nowrap !important;
+}
+
+.logo-text {
+  font-size: 16px !important;
+  white-space: nowrap !important;
+}
+
+/* Force buttons to be visible and properly sized */
+#sound-toggle-btn,
+#performance-mode-btn,
+#calculator-header-btn,
+#streak-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  background: var(--card) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 30px !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* Specific to performance button - make it stand out if needed */
+#performance-mode-btn {
+  background: var(--accent-dim) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Extreme small screens - reduce padding but keep visible */
+@media (max-width: 400px) {
+  .header-left {
+    gap: 4px !important;
+    min-width: 60px !important;
+  }
+  .header-right {
+    gap: 4px !important;
+    min-width: 60px !important;
+  }
+  #sound-toggle-btn,
+  #performance-mode-btn,
+  #calculator-header-btn,
+  #streak-btn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+  .logo-text {
+    font-size: 14px !important;
+  }
+  .logo-icon {
+    font-size: 18px !important;
+  }
+}
+
+/* For very narrow phones (like iPhone SE) */
+@media (max-width: 360px) {
+  .logo-text {
+    font-size: 12px !important;
+  }
+  #performance-mode-btn span,
+  #streak-btn span {
+    display: none !important;
+  }
+  /* Show just the emoji on very small screens */
+  #performance-mode-btn {
+    padding: 4px 8px !important;
+    font-size: 14px !important;
+  }
+}
