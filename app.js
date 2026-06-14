@@ -2,6 +2,38 @@
    JIM BUDDY — App Logic (Complete)
 ══════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════
+   LOADING SCREEN
+══════════════════════════════════════════ */
+
+// Hide loading screen after page loads
+function hideLoadingScreen() {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    // Add a slight delay to show the animation
+    setTimeout(() => {
+      loadingScreen.classList.add('hide');
+      // Remove from DOM after animation completes
+      setTimeout(() => {
+        if (loadingScreen && loadingScreen.parentNode) {
+          loadingScreen.style.display = 'none';
+        }
+      }, 600);
+    }, 1500); // Show loading screen for 1.5 seconds minimum
+  }
+}
+
+// Ensure loading screen hides even if DOM loads super fast
+window.addEventListener('load', hideLoadingScreen);
+
+// Fallback: hide after 3 seconds max
+setTimeout(() => {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen && !loadingScreen.classList.contains('hide')) {
+    hideLoadingScreen();
+  }
+}, 3000);
+
 // ─── Data Layer ───────────────────────────────────────────
 const DB = {
   get: (key, def = null) => {

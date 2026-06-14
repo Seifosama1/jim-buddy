@@ -2015,3 +2015,246 @@ input[type="number"]::-webkit-inner-spin-button {
   transform: scale(1.2);
   margin-right: 4px;
 }
+/* ══════════════════════════════════════════
+   LOADING SCREEN ANIMATIONS
+══════════════════════════════════════════ */
+
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #0A0A0F 0%, #1A1A2E 50%, #0A0A0F 100%);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s ease;
+  opacity: 1;
+  visibility: visible;
+}
+
+.loading-screen.hide {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 20px;
+  animation: fadeInScale 0.8s ease-out;
+}
+
+.loading-icon {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.biceps-emoji {
+  font-size: 60px;
+  animation: bicepsPump 1s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 0 20px rgba(0, 229, 160, 0.5));
+}
+
+.loading-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 3px solid transparent;
+  border-top-color: #00E5A0;
+  border-right-color: #00B4D8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-ring-delayed {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 3px solid transparent;
+  border-bottom-color: #FFB830;
+  border-left-color: #00E5A0;
+  border-radius: 50%;
+  animation: spinReverse 1.2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+@keyframes bicepsPump {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.loading-title {
+  font-size: 42px;
+  font-weight: 900;
+  margin-bottom: 12px;
+  letter-spacing: -1px;
+  animation: slideUpFade 0.6s ease-out 0.2s both;
+}
+
+.loading-title .gradient-text {
+  background: linear-gradient(135deg, #00E5A0, #00B4D8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
+.loading-title .gradient-text-gold {
+  background: linear-gradient(135deg, #FFB830, #FF8C00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
+.loading-slogan {
+  font-size: 14px;
+  color: var(--text2);
+  letter-spacing: 1px;
+  animation: slideUpFade 0.6s ease-out 0.4s both;
+  white-space: nowrap;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Loading Dots Animation */
+.loading-dots {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 30px;
+  animation: slideUpFade 0.6s ease-out 0.6s both;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #00E5A0, #00B4D8);
+  border-radius: 50%;
+  animation: dotBounce 1.4s ease-in-out infinite;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dotBounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-12px);
+    opacity: 1;
+  }
+}
+
+/* Optional: Add sparkle effect around biceps */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.loading-icon::before,
+.loading-icon::after {
+  content: '✨';
+  position: absolute;
+  font-size: 16px;
+  opacity: 0;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.loading-icon::before {
+  top: 0;
+  left: 10px;
+  animation-delay: 0.3s;
+}
+
+.loading-icon::after {
+  bottom: 0;
+  right: 10px;
+  animation-delay: 0.6s;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .loading-title {
+    font-size: 32px;
+  }
+  
+  .loading-slogan {
+    font-size: 12px;
+    white-space: normal;
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  
+  .loading-icon {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .biceps-emoji {
+    font-size: 48px;
+  }
+}
