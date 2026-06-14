@@ -176,7 +176,10 @@
           <div class="workout-queue-panel" id="workout-queue-panel">
             <div class="workout-queue-header">
               <span class="workout-queue-title">📋 Today's Workout Queue</span>
-              <span class="workout-queue-count" id="queue-count">0</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <button class="btn btn-sm btn-ghost" id="load-schedule-btn" onclick="openLoadFromScheduleModal()" style="font-size:11px;padding:4px 10px;">📅 Load Day</button>
+                <span class="workout-queue-count" id="queue-count">0</span>
+              </div>
             </div>
             <div class="workout-queue-list" id="workout-queue-list">
               <div class="queue-empty">No exercises added. Tap + on any exercise to add to queue.</div>
@@ -890,6 +893,25 @@
           </div>
         </div>
       </section>
+  <!-- Load from Schedule Modal -->
+  <div class="modal-overlay" id="load-schedule-modal">
+    <div class="modal modal--tall">
+      <div class="modal-header">
+        <h3>Load Day into Queue</h3>
+        <button class="icon-btn" onclick="closeModal('load-schedule-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Pick a day from your weekly split to load its exercises into today's queue.</p>
+        <div id="schedule-day-picker" class="schedule-day-picker">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('load-schedule-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="workouts-data.js"></script>

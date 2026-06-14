@@ -86,8 +86,9 @@ let state = {
   scheduledSession: null,
   scheduledCurrentIndex: null,
   selectedFoodId: null,
-  activeQueueIndex: null,  // Add this line
-  lastCalculation: null     // Add this line
+  activeQueueIndex: null,
+  lastCalculation: null,
+  weightUnit: DB.get('weightUnit', 'kg') || 'kg'
 };
 
 // ─── Helper Functions ────────────────────────────────────
@@ -1159,9 +1160,19 @@ function openSessionModal(exercise) {
 }
 
 function renderStrengthSessionInputs(exercise, sets) {
+  const isLb = state.weightUnit === 'lb';
   return `
     <div class="set-labels">
-      <span>Set</span><span>Weight (kg)</span><span>Reps</span><span>✓</span>
+      <span>Set</span>
+      <span style="display:flex;align-items:center;gap:6px;justify-content:center">
+        Weight
+        <button class="unit-toggle-btn" id="unit-toggle" onclick="toggleWeightUnit()" title="Switch unit">
+          <span class="unit-option ${!isLb ? 'active' : ''}">kg</span>
+          <span class="unit-sep">/</span>
+          <span class="unit-option ${isLb ? 'active' : ''}">lb</span>
+        </button>
+      </span>
+      <span>Reps</span><span>✓</span>
     </div>
     ${Array.from({length: sets}, (_, i) => `
       <div class="set-row" id="set-row-${i}">
@@ -1172,6 +1183,37 @@ function renderStrengthSessionInputs(exercise, sets) {
       </div>`).join('')}
     <div style="margin-top:4px;font-size:12px;color:var(--text3)">Tap ✓ to mark set done · rest timer starts automatically</div>
   `;
+}
+
+function toggleWeightUnit() {
+  state.weightUnit = state.weightUnit === 'lb' ? 'kg' : 'lb';
+  DB.set('weightUnit', state.weightUnit);
+  const isLb = state.weightUnit === 'lb';
+
+  // Update toggle button UI
+  const btn = document.getElementById('unit-toggle');
+  if (btn) {
+    const opts = btn.querySelectorAll('.unit-option');
+    opts[0].classList.toggle('active', !isLb); // kg
+    opts[1].classList.toggle('active', isLb);  // lb
+  }
+
+  // Convert existing values in inputs
+  const KG_TO_LB = 2.20462;
+  const LB_TO_KG = 0.453592;
+  let i = 0;
+  while (true) {
+    const input = document.getElementById('set-weight-' + i);
+    if (!input) break;
+    const val = parseFloat(input.value);
+    if (!isNaN(val) && val > 0) {
+      const converted = isLb ? (val * KG_TO_LB) : (val * LB_TO_KG);
+      input.value = Math.round(converted * 4) / 4; // round to nearest 0.25
+    }
+    i++;
+  }
+
+  toast(`Switched to ${state.weightUnit}`);
 }
 
 function renderCardioSessionInputs(exercise) {
@@ -1256,10 +1298,14 @@ function saveSession() {
     const sets = ex.sets || 3;
     const loggedSets = [];
     let maxWeight = 0;
+    const LB_TO_KG_S = 0.453592;
+    const isLbS = state.weightUnit === 'lb';
     for (let i = 0; i < sets; i++) {
-      const w = parseFloat(document.getElementById('set-weight-' + i)?.value) || 0;
+      let w = parseFloat(document.getElementById('set-weight-' + i)?.value) || 0;
       const r = parseInt(document.getElementById('set-reps-' + i)?.value) || 0;
       const done = document.getElementById('set-check-' + i)?.classList.contains('checked');
+      // Always store in kg
+      if (isLbS && w > 0) w = Math.round(w * LB_TO_KG_S * 100) / 100;
       loggedSets.push({ weight: w, reps: r, done });
       if (w > maxWeight) maxWeight = w;
     }
@@ -2149,20 +2195,32 @@ function openQueueExerciseModal(queueIndex) {
   // Pre-fill existing logged sets
   let setsHtml = '';
   if (!isCardio) {
+    const isLb = state.weightUnit === 'lb';
+    const KG_TO_LB = 2.20462;
     setsHtml = `
       <div class="set-labels">
-        <span>Set</span><span>Weight (kg)</span><span>Reps</span><span>✓</span>
+        <span>Set</span>
+        <span style="display:flex;align-items:center;gap:6px;justify-content:center">
+          Weight
+          <button class="unit-toggle-btn" id="unit-toggle" onclick="toggleWeightUnit()" title="Switch unit">
+            <span class="unit-option ${!isLb ? 'active' : ''}">kg</span>
+            <span class="unit-sep">/</span>
+            <span class="unit-option ${isLb ? 'active' : ''}">lb</span>
+          </button>
+        </span>
+        <span>Reps</span><span>✓</span>
       </div>
       ${Array.from({length: sets}, (_, i) => {
         const existingSet = exercise.loggedSets && exercise.loggedSets[i];
         const isDone = existingSet?.done || false;
-        // Load saved values - THIS IS KEY
-        const weightValue = (existingSet?.weight !== undefined && existingSet?.weight !== null) ? existingSet.weight : '';
+        let rawWeight = (existingSet?.weight !== undefined && existingSet?.weight !== null) ? existingSet.weight : '';
+        // Convert stored kg value to lb for display if needed
+        if (rawWeight !== '' && isLb) rawWeight = Math.round(parseFloat(rawWeight) * KG_TO_LB * 4) / 4;
         const repsValue = (existingSet?.reps !== undefined && existingSet?.reps !== null) ? existingSet.reps : '';
         return `
           <div class="set-row" id="set-row-${i}">
             <div class="set-num ${isDone ? 'done' : ''}" id="set-num-${i}">${i+1}</div>
-            <input class="set-input" type="number" inputmode="decimal" id="set-weight-${i}" value="${weightValue}" placeholder="0" step="0.5" />
+            <input class="set-input" type="number" inputmode="decimal" id="set-weight-${i}" value="${rawWeight}" placeholder="0" step="0.5" />
             <input class="set-input" type="number" inputmode="numeric" id="set-reps-${i}" value="${repsValue}" placeholder="${exercise.reps || 10}" />
             <div class="set-check ${isDone ? 'checked' : ''}" id="set-check-${i}" onclick="toggleQueuedSetCheck(${i})"></div>
           </div>`;
@@ -2242,6 +2300,9 @@ function saveQueuedExercise() {
     let maxWeight = 0;
     let allCompleted = true;
     
+    const LB_TO_KG = 0.453592;
+    const isLb = state.weightUnit === 'lb';
+
     // Get ALL values from inputs (even if not marked done)
     for (let i = 0; i < sets; i++) {
       const weightInput = document.getElementById('set-weight-' + i);
@@ -2255,6 +2316,9 @@ function saveQueuedExercise() {
       if (weightInput) w = parseFloat(weightInput.value) || 0;
       if (repsInput) r = parseInt(repsInput.value) || 0;
       if (checkBox) done = checkBox.classList.contains('checked');
+
+      // Always store in kg
+      if (isLb && w > 0) w = Math.round(w * LB_TO_KG * 100) / 100;
       
       loggedSets.push({ weight: w, reps: r, done: done });
       if (w > maxWeight) maxWeight = w;
@@ -2563,6 +2627,96 @@ function viewSessionDetails(sessionIndex) {
   
   modalBody.innerHTML = exercisesHtml;
   openModal('session-modal');
+}
+
+// ─── Load from Schedule into Queue ──────────────────────
+
+function openLoadFromScheduleModal() {
+  const schedule = getWeeklySchedule();
+  const container = document.getElementById('schedule-day-picker');
+  if (!container) return;
+
+  // Get today's day name to highlight it
+  const todayName = DAYS_OF_WEEK[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
+
+  container.innerHTML = DAYS_OF_WEEK.map(day => {
+    const dayData = schedule.days[day] || { name: '', workouts: [] };
+    const count = dayData.workouts?.length || 0;
+    const isToday = day === todayName;
+    const isEmpty = count === 0;
+
+    return `
+      <div class="schedule-picker-card ${isEmpty ? 'empty' : ''} ${isToday ? 'today' : ''}" 
+           onclick="${isEmpty ? '' : `loadDayIntoQueue('${day}')`}"
+           style="cursor:${isEmpty ? 'default' : 'pointer'}">
+        <div class="schedule-picker-header">
+          <div>
+            <span class="schedule-picker-day">${day} ${isToday ? '<span class="today-badge">Today</span>' : ''}</span>
+            ${dayData.name ? `<span class="schedule-picker-name">${escHtml(dayData.name)}</span>` : ''}
+          </div>
+          <span class="schedule-picker-count">${count} exercise${count !== 1 ? 's' : ''}</span>
+        </div>
+        ${count > 0 ? `
+          <div class="schedule-picker-exercises">
+            ${dayData.workouts.slice(0, 4).map(w => `<span class="schedule-picker-tag">${escHtml(w.name)}</span>`).join('')}
+            ${count > 4 ? `<span class="schedule-picker-tag">+${count - 4} more</span>` : ''}
+          </div>
+          <button class="btn btn-primary btn-sm" style="width:100%;margin-top:10px" onclick="event.stopPropagation();loadDayIntoQueue('${day}')">
+            ➕ Load ${day}${dayData.name ? ' — ' + escHtml(dayData.name) : ''}
+          </button>
+        ` : `<p style="font-size:12px;color:var(--text3);margin-top:6px;">No exercises scheduled</p>`}
+      </div>
+    `;
+  }).join('');
+
+  openModal('load-schedule-modal');
+}
+
+function loadDayIntoQueue(day) {
+  const schedule = getWeeklySchedule();
+  const dayData = schedule.days[day];
+
+  if (!dayData || !dayData.workouts || dayData.workouts.length === 0) {
+    toast(`No exercises scheduled for ${day}`);
+    return;
+  }
+
+  const existingIds = new Set(workoutQueue.map(item => item.id));
+  let added = 0;
+  let skipped = 0;
+
+  dayData.workouts.forEach(ex => {
+    if (existingIds.has(ex.id)) {
+      skipped++;
+      return;
+    }
+    workoutQueue.push({
+      id: ex.id,
+      name: ex.name,
+      sets: ex.sets || 3,
+      reps: ex.reps || 10,
+      rest: ex.rest || 60,
+      isCardio: ex.isCardio || false,
+      muscle: ex.muscle || 'General',
+      completed: false,
+      loggedSets: [],
+      maxWeight: 0
+    });
+    added++;
+  });
+
+  saveWorkoutQueue();
+  closeModal('load-schedule-modal');
+
+  if (added === 0) {
+    toast(`All exercises from ${day} already in queue`);
+  } else if (skipped > 0) {
+    toast(`✅ Added ${added} exercise${added !== 1 ? 's' : ''} (${skipped} already in queue)`);
+  } else {
+    toast(`✅ Loaded ${added} exercise${added !== 1 ? 's' : ''} from ${day}!`);
+  }
+
+  SoundManager.success();
 }
 
 // Quick log with prompt (⚡ button)
