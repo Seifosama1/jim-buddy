@@ -3064,3 +3064,33 @@ canvas {
 .performance-mode .rest-timer.active {
   animation: none !important;
 }
+
+
+
+/* Force visibility of performance button */
+#performance-mode-btn {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Make sure header-left shows all buttons */
+.header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: auto !important;
+  min-width: 80px !important;
+}
+
+/* Ensure buttons are not hidden on small screens */
+@media (max-width: 380px) {
+  .header-left {
+    width: auto !important;
+    min-width: 70px !important;
+  }
+  #performance-mode-btn {
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+  }
+}
