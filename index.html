@@ -6,7 +6,10 @@
   <meta name="theme-color" content="#0A0A0F" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+
   <title>Jim Buddy</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -40,23 +43,22 @@
   <!-- App Shell -->
   <div id="app">
 
-           <!-- Header -->
-    <header id="app-header">
-      <div class="header-left">
-        <button class="icon-btn" id="sound-toggle-btn" title="Sound on" onclick="SoundManager.toggle()">🔊</button>
-      </div>
-      <div class="header-inner">
-        <div class="header-logo">
-          <span class="logo-icon">💪</span>
-          <span class="logo-text">Jim Buddy</span>
-                  <button class="icon-btn" id="streak-btn" title="Streak">🔥 <span id="streak-count">0</span></button>
-
-        </div>
-      </div>
-      <div class="header-right">
-        <button class="icon-btn" id="calculator-header-btn" title="Calorie Calculator" onclick="navigate('calculator')">🧮</button>
-      </div>
-    </header>
+   <header id="app-header">
+  <div class="header-left">
+    <button class="icon-btn" id="sound-toggle-btn">🔊</button>
+    <button class="icon-btn" id="performance-mode-btn" onclick="togglePerformanceMode()">⚡</button>
+  </div>
+  <div class="header-inner">
+    <div class="header-logo">
+      <span class="logo-icon">💪</span>
+      <span class="logo-text">Jim Buddy</span>
+      <span>    <button class="icon-btn" id="streak-btn">🔥 <span id="streak-count">0</span></button></span>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" id="calculator-header-btn" onclick="navigate('calculator')">🧮</button>
+  </div>
+</header>
 
     <!-- Page Container -->
     <main id="pages">

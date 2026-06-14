@@ -1466,28 +1466,36 @@ function toggleSetCheck(i, rest) {
 }
 
 let timerInterval;
+let timerAnimationId;
 function startRestTimer(seconds) {
   const box = document.getElementById('rest-timer-box');
   const display = document.getElementById('timer-display');
   if (!box || !display) return;
-  clearInterval(timerInterval);
-  box.classList.add('active', 'pulsing');
+  
+  // Cancel any existing timer
+  if (timerInterval) clearInterval(timerInterval);
+  if (timerAnimationId) cancelAnimationFrame(timerAnimationId);
+  
+  box.classList.add('active');
   let remaining = seconds;
   display.textContent = formatTime(remaining);
+  
+  // Use setInterval but throttle updates
   timerInterval = setInterval(() => {
     remaining--;
     display.textContent = formatTime(remaining);
     if (remaining <= 0) {
       clearInterval(timerInterval);
-      box.classList.remove('active', 'pulsing');
+      box.classList.remove('active');
       toast('⏱ Rest done! Next set!');
     }
   }, 1000);
 }
 
 function skipTimer() {
-  clearInterval(timerInterval);
-  document.getElementById('rest-timer-box')?.classList.remove('active', 'pulsing');
+  if (timerInterval) clearInterval(timerInterval);
+  if (timerAnimationId) cancelAnimationFrame(timerAnimationId);
+  document.getElementById('rest-timer-box')?.classList.remove('active');
 }
 
 function formatTime(s) {
@@ -3085,7 +3093,94 @@ document.addEventListener('DOMContentLoaded', () => {
   window.savePRToRecords = savePRToRecords;
   window.renderPRLists = renderPRLists;
   window.editPR = editPR;
+ 
+    // ══════════════════════════════════════════
+  // PERFORMANCE OPTIMIZATIONS
+  // ══════════════════════════════════════════
+
+  // Throttle scroll events (reduce event firing)
+  let ticking = false;
+  const scrollContainer = document.querySelector('.page-scroll');
+  if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', function() {
+      if (!ticking) {
+        requestAnimationFrame(function() {
+          // Your scroll logic here if needed
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+  }
+
+  // Debounce input events
+  const searchInput = document.getElementById('exercise-search');
+  if (searchInput) {
+    let debounceTimer;
+    const originalOnInput = searchInput.oninput;
+    searchInput.oninput = function(e) {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        if (originalOnInput) originalOnInput.call(searchInput, e);
+        filterExercises();
+      }, 150);
+    };
+  }
+
+  // Batch DOM updates using requestAnimationFrame
+  window.batchUpdate = function(updateFn) {
+    requestAnimationFrame(updateFn);
+  };
+
+  // Optimize render calls
+  const originalRenderWorkouts = renderWorkouts;
+  window.renderWorkouts = function() {
+    requestAnimationFrame(() => originalRenderWorkouts());
+  };
+
+  const originalRenderDashboard = renderDashboard;
+  window.renderDashboard = function() {
+    requestAnimationFrame(() => originalRenderDashboard());
+  };
+
+  // Throttle toast notifications (reduce UI thrashing)
+  let toastQueue = [];
+  let isProcessingToast = false;
   
+  window.toast = function(msg) {
+    toastQueue.push(msg);
+    if (!isProcessingToast) {
+      processToastQueue();
+    }
+  };
+  
+  function processToastQueue() {
+    if (toastQueue.length === 0) {
+      isProcessingToast = false;
+      return;
+    }
+    isProcessingToast = true;
+    const msg = toastQueue.shift();
+    const el = document.getElementById('toast');
+    if (el) {
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => {
+        el.classList.remove('show');
+        setTimeout(processToastQueue, 300);
+      }, 2000);
+    } else {
+      processToastQueue();
+    }
+  }
+
+  // Disable smooth scrolling on all elements for low-end
+  document.querySelectorAll('.page-scroll').forEach(el => {
+    el.style.scrollBehavior = 'auto';
+  });
+
+  console.log('Performance optimizations enabled for low-end devices');
+
 });
 
 // ══════════════════════════════════════════
@@ -3100,4 +3195,25 @@ if ('serviceWorker' in navigator) {
       console.log('Service Worker registration failed:', error);
     });
   });
+}
+
+// Performance mode toggle
+let performanceMode = localStorage.getItem('performanceMode') === 'true';
+
+function togglePerformanceMode() {
+  performanceMode = !performanceMode;
+  localStorage.setItem('performanceMode', performanceMode);
+  
+  if (performanceMode) {
+    document.body.classList.add('performance-mode');
+    toast('⚡ Performance mode ON - Reduced animations');
+  } else {
+    document.body.classList.remove('performance-mode');
+    toast('✨ Full animations restored');
+  }
+}
+
+// Apply performance mode on load
+if (performanceMode) {
+  document.body.classList.add('performance-mode');
 }
