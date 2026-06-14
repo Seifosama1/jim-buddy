@@ -32,7 +32,41 @@
 
     <!-- Page Container -->
     <main id="pages">
-
+      <!-- ═══════════════════ WEEK SCHEDULE ═══════════════════ -->
+      <section class="page" id="page-schedule">
+        <div class="page-scroll">
+          <div class="page-header">
+            <h2 class="page-title">Weekly Schedule</h2>
+            <button class="btn btn-primary btn-sm" onclick="resetWeeklySchedule()">Reset Plan</button>
+          </div>
+          
+          <div class="schedule-intro">
+            <p class="schedule-intro-text">📅 Plan your week. Add exercises to each day and follow along.</p>
+          </div>
+          
+          <div id="weekly-schedule-grid" class="weekly-schedule-grid">
+            <!-- Dynamically populated -->
+          </div>
+          
+          <div class="schedule-tips">
+            <h4 class="schedule-tips-title">💡 Quick Templates</h4>
+            <div class="schedule-tips-grid">
+              <div class="schedule-tip" onclick="applySplitTemplate('push-pull-legs')">
+                <span>🏋️ Push/Pull/Legs</span>
+              </div>
+              <div class="schedule-tip" onclick="applySplitTemplate('upper-lower')">
+                <span>⬆️ Upper/Lower</span>
+              </div>
+              <div class="schedule-tip" onclick="applySplitTemplate('bro-split')">
+                <span>💪 Bro Split (5-day)</span>
+              </div>
+              <div class="schedule-tip" onclick="applySplitTemplate('full-body')">
+                <span>🔥 Full Body</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <!-- ═══════════════════ DASHBOARD ═══════════════════ -->
       <section class="page active" id="page-home">
         <div class="page-scroll">
@@ -202,11 +236,11 @@
               <h3 class="card-title" style="margin-bottom:16px">⚖️ Weight Loss Goal</h3>
               <div class="form-group">
                 <label class="form-label">Current Weight (kg)</label>
-                <input type="number" class="form-input" id="wl-current" placeholder="e.g. 90" step="0.1" />
+<input type="number" class="form-input" id="wl-current" placeholder="e.g. 90" step="0.1" inputmode="decimal" pattern="[0-9]*" />
               </div>
               <div class="form-group">
                 <label class="form-label">Target Weight (kg)</label>
-                <input type="number" class="form-input" id="wl-target" placeholder="e.g. 80" step="0.1" />
+<input type="number" class="form-input" id="wl-target" placeholder="e.g. 80" step="0.1" inputmode="decimal" pattern="[0-9]*" />
               </div>
               <div class="form-group">
                 <label class="form-label">Target Date</label>
@@ -222,7 +256,7 @@
             <div class="card">
               <div class="form-group">
                 <label class="form-label">Today's Weight (kg)</label>
-                <input type="number" class="form-input" id="wl-log-weight" placeholder="e.g. 88.5" step="0.1" />
+<input type="number" class="form-input" id="wl-log-weight" placeholder="e.g. 88.5" step="0.1" inputmode="decimal" pattern="[0-9]*" />
               </div>
               <button class="btn btn-primary" style="width:100%" onclick="logWeight()">Log Weight</button>
             </div>
@@ -243,11 +277,11 @@
               <h3 class="card-title" style="margin-bottom:16px">🏃 Weekly Cardio Goal</h3>
               <div class="form-group">
                 <label class="form-label">Weekly Cardio Minutes Goal</label>
-                <input type="number" class="form-input" id="cardio-goal-min" placeholder="e.g. 150" />
+<input type="number" class="form-input" id="cardio-goal-min" placeholder="e.g. 150" inputmode="numeric" pattern="[0-9]*" />
               </div>
               <div class="form-group">
                 <label class="form-label">Weekly Sessions Goal</label>
-                <input type="number" class="form-input" id="cardio-goal-sessions" placeholder="e.g. 5" />
+<input type="number" class="form-input" id="cardio-goal-sessions" placeholder="e.g. 5" inputmode="numeric" pattern="[0-9]*" />
               </div>
               <button class="btn btn-primary" style="width:100%" onclick="saveCardioGoal()">Save Cardio Goal</button>
             </div>
@@ -277,15 +311,15 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Duration (minutes)</label>
-                <input type="number" class="form-input" id="cardio-log-duration" placeholder="e.g. 30" />
+<input type="number" class="form-input" id="cardio-log-duration" placeholder="e.g. 30" inputmode="numeric" pattern="[0-9]*" />
               </div>
               <div class="form-group">
                 <label class="form-label">Distance (km, optional)</label>
-                <input type="number" class="form-input" id="cardio-log-distance" placeholder="e.g. 5" step="0.1" />
+<input type="number" class="form-input" id="cardio-log-distance" placeholder="e.g. 5" step="0.1" inputmode="decimal" pattern="[0-9]*" />
               </div>
               <div class="form-group">
                 <label class="form-label">Calories Burned (optional)</label>
-                <input type="number" class="form-input" id="cardio-log-calories" placeholder="e.g. 300" />
+<input type="number" class="form-input" id="cardio-log-calories" placeholder="e.g. 300" inputmode="numeric" pattern="[0-9]*" />
               </div>
               <button class="btn btn-primary" style="width:100%" onclick="logCardio()">Log Cardio</button>
             </div>
@@ -330,7 +364,7 @@
           <!-- Custom Amount -->
           <div class="card" style="margin-top:16px">
             <div class="card-row">
-              <input type="number" class="form-input" id="water-custom-amount" placeholder="Custom ml" style="flex:1;margin-right:12px" />
+<input type="number" class="form-input" id="water-custom-amount" placeholder="Custom ml" style="flex:1;margin-right:12px" inputmode="numeric" pattern="[0-9]*" />
               <button class="btn btn-primary" onclick="addWaterCustom()">Add</button>
             </div>
           </div>
@@ -339,7 +373,7 @@
           <div class="card" style="margin-top:16px">
             <h3 class="card-title" style="margin-bottom:12px">Daily Goal</h3>
             <div class="card-row">
-              <input type="number" class="form-input" id="water-goal-input" placeholder="2000" style="flex:1;margin-right:12px" />
+<input type="number" class="form-input" id="water-goal-input" placeholder="2000" style="flex:1;margin-right:12px" inputmode="numeric" pattern="[0-9]*" />
               <button class="btn btn-ghost" onclick="setWaterGoal()">Set</button>
             </div>
           </div>
@@ -357,10 +391,104 @@
         </div>
       </section>
 
+      <!-- ═══════════════════ WEEK SCHEDULE ═══════════════════ -->
+      <section class="page" id="page-schedule">
+        <div class="page-scroll">
+          <div class="page-header">
+            <h2 class="page-title">Weekly Schedule</h2>
+            <button class="btn btn-primary btn-sm" onclick="resetWeeklySchedule()">Reset Plan</button>
+          </div>
+          
+          <div class="schedule-intro">
+            <p class="schedule-intro-text">📅 Plan your week. Add exercises to each day and follow along.</p>
+          </div>
+          
+          <div id="weekly-schedule-grid" class="weekly-schedule-grid">
+            <!-- Dynamically populated -->
+          </div>
+          
+          <div class="schedule-tips">
+            <h4 class="schedule-tips-title">💡 Split Ideas</h4>
+            <div class="schedule-tips-grid">
+              <div class="schedule-tip" onclick="applySplitTemplate('push-pull-legs')">
+                <span>🏋️ Push/Pull/Legs</span>
+              </div>
+              <div class="schedule-tip" onclick="applySplitTemplate('upper-lower')">
+                <span>⬆️ Upper/Lower</span>
+              </div>
+              <div class="schedule-tip" onclick="applySplitTemplate('bro-split')">
+                <span>💪 Bro Split (5-day)</span>
+              </div>
+              <div class="schedule-tip" onclick="applySplitTemplate('full-body')">
+                <span>🔥 Full Body</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+            <!-- ═══════════════════ CALORIE TRACKER ═══════════════════ -->
+      <section class="page" id="page-calorie">
+        <div class="page-scroll">
+          <div class="page-header">
+            <h2 class="page-title">Calorie Tracker 🍽️</h2>
+            <button class="btn btn-primary btn-sm" onclick="openAddFoodModal()">+ Add Food</button>
+          </div>
+
+          <!-- Daily Summary Card -->
+          <div class="calorie-summary-card">
+            <div class="calorie-summary-header">
+              <div>
+                <span class="calorie-summary-label">Today's Calories</span>
+                <span class="calorie-summary-value" id="calorie-total">0</span>
+                <span class="calorie-summary-unit">kcal</span>
+              </div>
+              <div class="calorie-goal-display">
+                <span id="calorie-goal-text">2000</span>
+                <span class="calorie-goal-label">Daily Goal</span>
+              </div>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar" id="calorie-progress-bar" style="width:0%"></div>
+            </div>
+            <div class="calorie-macros" id="calorie-macros">
+              <div class="macro-item"><span class="macro-dot protein"></span>Protein: <span id="protein-total">0</span>g</div>
+              <div class="macro-item"><span class="macro-dot carbs"></span>Carbs: <span id="carbs-total">0</span>g</div>
+              <div class="macro-item"><span class="macro-dot fats"></span>Fats: <span id="fats-total">0</span>g</div>
+            </div>
+          </div>
+
+          <!-- Quick Add Section -->
+          <div class="quick-food-section">
+            <h3 class="section-title">Quick Add</h3>
+            <div class="quick-food-grid" id="quick-food-grid"></div>
+          </div>
+
+          <!-- Food Log -->
+          <div class="section-header" style="margin-top:8px">
+            <h2 class="section-title">Today's Food Log</h2>
+            <button class="btn btn-sm btn-ghost" onclick="resetTodayFood()">Reset Day</button>
+          </div>
+          <div id="food-log-list" class="food-log-list">
+            <p class="muted-text">No food logged today. Add your meals above!</p>
+          </div>
+
+          <!-- Meal Suggestions -->
+          <div class="meal-suggestions">
+            <h3 class="section-title">💡 Meal Ideas</h3>
+            <div class="meal-suggestions-grid" id="meal-suggestions-grid"></div>
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <!-- Bottom Nav -->
     <nav id="bottom-nav">
+      <button class="nav-btn" data-page="schedule" onclick="navigate('schedule')">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Schedule</span>
+      </button>
       <button class="nav-btn active" data-page="home" onclick="navigate('home')">
         <span class="nav-icon">🏠</span>
         <span class="nav-label">Home</span>
@@ -380,6 +508,14 @@
       <button class="nav-btn" data-page="water" onclick="navigate('water')">
         <span class="nav-icon">💧</span>
         <span class="nav-label">Water</span>
+      </button>
+            <button class="nav-btn" data-page="calorie" onclick="navigate('calorie')">
+        <span class="nav-icon">🍽️</span>
+        <span class="nav-label">Food</span>
+      </button>
+      <button class="nav-btn" data-page="calculator" onclick="navigate('calculator')">
+        <span class="nav-icon">📲</span>
+        <span class="nav-label">Calculator</span>
       </button>
     </nav>
   </div>
@@ -407,15 +543,15 @@
         </div>
         <div class="form-group">
           <label class="form-label">Sets</label>
-          <input type="number" class="form-input" id="wm-sets" placeholder="3" min="1" max="20" />
+<input type="number" class="form-input" id="wm-sets" placeholder="3" min="1" max="20" inputmode="numeric" pattern="[0-9]*" />
         </div>
         <div class="form-group">
           <label class="form-label">Reps</label>
-          <input type="number" class="form-input" id="wm-reps" placeholder="10" min="1" max="100" />
+<input type="number" class="form-input" id="wm-reps" placeholder="10" min="1" max="100" inputmode="numeric" pattern="[0-9]*" />
         </div>
         <div class="form-group">
           <label class="form-label">Rest Time (seconds)</label>
-          <input type="number" class="form-input" id="wm-rest" placeholder="60" min="0" />
+<input type="number" class="form-input" id="wm-rest" placeholder="60" min="0" inputmode="numeric" pattern="[0-9]*" />
         </div>
         <div class="form-group">
           <label class="form-label">Notes (optional)</label>
@@ -472,10 +608,287 @@
 
   <!-- Toast -->
   <div id="toast" class="toast"></div>
+  <!-- Schedule Editor Modal -->
+  <div class="modal-overlay" id="schedule-modal">
+    <div class="modal modal--tall">
+      <div class="modal-header">
+        <h3 id="schedule-modal-title">Edit Day</h3>
+        <button class="icon-btn" onclick="closeModal('schedule-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Workout Name (optional)</label>
+          <input type="text" class="form-input" id="schedule-day-name" placeholder="e.g. Chest Day, Push Day" />
+        </div>
+        
+        <div class="section-header" style="margin-top:8px">
+          <h3 class="section-title">Exercises</h3>
+        </div>
+        <div id="schedule-workout-list" class="schedule-workout-list">
+          <!-- dynamic -->
+        </div>
+        
+        <div class="section-header" style="margin-top:16px">
+          <h3 class="section-title">Add Exercise</h3>
+        </div>
+        <div class="search-wrap" style="margin-bottom:8px">
+          <input type="text" class="search-input" id="schedule-exercise-search" placeholder="Search exercises..." oninput="filterScheduleExercises()" />
+        </div>
+        <div id="schedule-available-exercises" class="schedule-available-exercises">
+          <!-- dynamic -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('schedule-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveScheduleDay()">Save Day</button>
+      </div>
+    </div>
+  </div>
+  <!-- Edit Schedule Workout Modal -->
+  <div class="modal-overlay edit-workout-modal" id="edit-schedule-workout-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Exercise</h3>
+        <button class="icon-btn" onclick="closeModal('edit-schedule-workout-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="edit-workout-header" id="edit-workout-header">
+          <!-- Dynamically populated -->
+        </div>
+        
+        <div class="edit-workout-fields">
+          <div class="edit-field-row">
+            <div class="edit-field-group">
+              <label>Sets</label>
+              <input type="number" id="edit-workout-sets" min="1" max="20" step="1" />
+            </div>
+            <div class="edit-field-group">
+              <label>Reps</label>
+              <input type="number" id="edit-workout-reps" min="1" max="100" step="1" />
+            </div>
+          </div>
+          
+          <div class="edit-field-group">
+            <label>Rest Time (seconds)</label>
+            <input type="number" id="edit-workout-rest" min="0" max="300" step="5" />
+          </div>
+          
+          <div class="edit-field-group">
+            <label>Notes (optional)</label>
+            <textarea id="edit-workout-notes" rows="3" placeholder="Add notes for this exercise..." style="width:100%;background:var(--bg3);border:1px solid var(--card-border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;padding:10px 12px;resize:none;"></textarea>
+          </div>
+        </div>
+        
+        <button class="delete-workout-btn" id="delete-schedule-workout-btn">
+          🗑 Delete from Schedule
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('edit-schedule-workout-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveScheduleWorkoutEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+    <!-- Add Food Modal -->
+  <div class="modal-overlay" id="add-food-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Food</h3>
+        <button class="icon-btn" onclick="closeModal('add-food-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Search Food</label>
+          <input type="text" class="form-input" id="food-search-input" placeholder="Type to search..." oninput="filterFoodList()" />
+        </div>
+        
+        <div id="food-search-results" class="food-search-results">
+          <!-- Dynamic food list -->
+        </div>
+        
+        <div class="divider">OR</div>
+        
+        <div class="form-group">
+          <label class="form-label">Custom Food Name</label>
+          <input type="text" class="form-input" id="custom-food-name" placeholder="e.g., My Protein Shake" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Calories</label>
+<input type="number" class="form-input" id="custom-calories" placeholder="kcal" inputmode="numeric" pattern="[0-9]*" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Protein (g)</label>
+<input type="number" class="form-input" id="custom-protein" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Carbs (g)</label>
+<input type="number" class="form-input" id="custom-carbs" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fats (g)</label>
+<input type="number" class="form-input" id="custom-fats" placeholder="g" step="0.1" inputmode="decimal" pattern="[0-9]*" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Serving Size</label>
+          <input type="text" class="form-input" id="custom-serving" placeholder="e.g., 1 cup, 100g" value="1 serving" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+<input type="number" class="form-input" id="food-quantity" value="1" step="0.5" min="0.5" inputmode="decimal" pattern="[0-9]*" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('add-food-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="addFoodToLog()">Add to Log</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- Calorie Goal Modal -->
+  <div class="modal-overlay" id="calorie-goal-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Set Daily Calorie Goal</h3>
+        <button class="icon-btn" onclick="closeModal('calorie-goal-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Daily Calorie Target</label>
+<input type="number" class="form-input" id="calorie-goal-input" placeholder="2000" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Protein Goal (g)</label>
+<input type="number" class="form-input" id="protein-goal-input" placeholder="150" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Carbs Goal (g)</label>
+<input type="number" class="form-input" id="carbs-goal-input" placeholder="200" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fats Goal (g)</label>
+<input type="number" class="form-input" id="fats-goal-input" placeholder="55" inputmode="numeric" pattern="[0-9]*" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('calorie-goal-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCalorieGoals()">Save Goals</button>
+      </div>
+    </div>
+  </div>
+        <!-- ═══════════════════ CALORIE CALCULATOR ═══════════════════ -->
+      <section class="page" id="page-calculator">
+        <div class="page-scroll">
+          <div class="page-header">
+            <h2 class="page-title">Calorie Calculator 🧮</h2>
+            <button class="btn btn-primary btn-sm" onclick="saveCalculatorProfile()">Save Profile</button>
+          </div>
+
+          <!-- Calculator Card -->
+          <div class="calculator-card">
+            <h3 class="calculator-title">Your Stats</h3>
+            
+            <div class="form-group">
+              <label class="form-label">Age (years)</label>
+              <input type="number" class="form-input" id="calc-age" placeholder="e.g., 25" min="15" max="120" />
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Weight (kg)</label>
+                <input type="number" class="form-input" id="calc-weight" placeholder="e.g., 75" step="0.5" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Height (cm)</label>
+                <input type="number" class="form-input" id="calc-height" placeholder="e.g., 175" />
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Sex</label>
+              <div class="sex-toggle">
+                <button type="button" class="sex-btn" data-sex="male" onclick="selectSex('male')">👨 Male</button>
+                <button type="button" class="sex-btn" data-sex="female" onclick="selectSex('female')">👩 Female</button>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Activity Level</label>
+              <select class="form-input" id="calc-activity">
+                <option value="1.2">Sedentary (little or no exercise)</option>
+                <option value="1.375">Lightly active (1-3 days/week)</option>
+                <option value="1.55">Moderately active (3-5 days/week)</option>
+                <option value="1.725">Very active (6-7 days/week)</option>
+                <option value="1.9">Extra active (athlete/physical job)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Goal</label>
+              <select class="form-input" id="calc-goal">
+                <option value="maintain">Maintain weight</option>
+                <option value="lose">Lose weight (500 cal deficit)</option>
+                <option value="lose-aggressive">Lose weight fast (1000 cal deficit)</option>
+                <option value="gain">Gain weight (300 cal surplus)</option>
+                <option value="gain-aggressive">Gain muscle (500 cal surplus)</option>
+              </select>
+            </div>
+            
+            <button class="btn btn-primary calculate-btn" onclick="calculateCalories()">Calculate 🔥</button>
+          </div>
+
+          <!-- Results Card -->
+          <div class="calculator-results" id="calculator-results" style="display: none;">
+            <div class="results-header">
+              <span class="results-icon">📊</span>
+              <h3 class="results-title">Your Daily Calories</h3>
+            </div>
+            
+            <div class="bmi-display" id="bmi-display"></div>
+            
+            <div class="result-item">
+              <div class="result-label">BMR (Basal Metabolic Rate)</div>
+              <div class="result-value" id="result-bmr">0</div>
+              <div class="result-unit">calories/day</div>
+            </div>
+            
+            <div class="result-item highlight">
+              <div class="result-label">Maintenance Calories</div>
+              <div class="result-value" id="result-maintenance">0</div>
+              <div class="result-unit">calories/day</div>
+            </div>
+            
+            <div class="result-item" id="goal-result">
+              <div class="result-label">Recommended Intake</div>
+              <div class="result-value" id="result-goal">0</div>
+              <div class="result-unit">calories/day</div>
+            </div>
+            
+            <div class="macro-recommendation" id="macro-recommendation"></div>
+            
+            <div class="action-buttons">
+              <button class="btn btn-primary" onclick="applyToCalorieTracker()">Apply to Tracker</button>
+              <button class="btn btn-ghost" onclick="saveCalculatorProfile()">Save Profile</button>
+            </div>
+          </div>
+
+          <!-- Saved Profile Info -->
+          <div class="saved-profile" id="saved-profile" style="display: none;">
+            <div class="saved-profile-header">
+              <span>💾 Saved Profile</span>
+              <button class="btn btn-sm btn-ghost" onclick="clearSavedProfile()">Clear</button>
+            </div>
+            <div id="saved-profile-info"></div>
+          </div>
+        </div>
+      </section>
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="workouts-data.js"></script>
   <script src="app.js"></script>
+  
 </body>
 </html>

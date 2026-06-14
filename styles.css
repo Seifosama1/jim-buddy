@@ -543,3 +543,1475 @@ select option { background: var(--bg3); color: var(--text); }
 @media (min-width: 430px) {
   .toast { bottom: calc(var(--nav-h) + 24px); }
 }
+/* ── Weekly Schedule Styles ── */
+.weekly-schedule-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.schedule-day-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  transition: all var(--transition);
+}
+
+.schedule-day-card:hover {
+  border-color: var(--accent);
+}
+
+.schedule-day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.schedule-day-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.schedule-workout-count {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg3);
+  padding: 3px 8px;
+  border-radius: 20px;
+  color: var(--text2);
+}
+
+.schedule-day-workout-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.schedule-day-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.schedule-exercise-tag {
+  background: var(--bg3);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--text2);
+  font-weight: 500;
+}
+
+.schedule-day-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.schedule-day-actions .btn {
+  flex: 1;
+  font-size: 12px;
+  padding: 8px 12px;
+}
+
+/* Schedule Editor Modal Styles */
+.schedule-workout-list {
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.schedule-workout-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.schedule-workout-row:last-child {
+  border-bottom: none;
+}
+
+.schedule-workout-info {
+  flex: 1;
+}
+
+.schedule-workout-name {
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+}
+
+.schedule-workout-detail {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.schedule-workout-actions .icon-btn-small {
+  background: rgba(255,71,87,0.15);
+  border: none;
+  color: var(--danger);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.schedule-available-exercises {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.schedule-exercise-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.schedule-exercise-item:hover {
+  background: var(--card);
+  border-color: var(--accent);
+}
+
+.schedule-exercise-icon {
+  font-size: 22px;
+}
+
+.schedule-exercise-info {
+  flex: 1;
+}
+
+.schedule-exercise-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.schedule-exercise-meta {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.schedule-add-icon {
+  font-size: 18px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Schedule Tips */
+.schedule-intro {
+  margin-bottom: 16px;
+}
+
+.schedule-intro-text {
+  font-size: 13px;
+  color: var(--text2);
+  background: var(--card);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--accent);
+}
+
+.schedule-tips {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--card-border);
+}
+
+.schedule-tips-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.schedule-tips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.schedule-tip {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.schedule-tip:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* Session Progress */
+.session-progress {
+  margin-bottom: 16px;
+}
+
+.session-progress-bar {
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.session-progress-text {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 6px;
+  text-align: center;
+}
+/* ─── Edit Workout Modal Styles ─── */
+.edit-workout-modal .modal {
+  max-width: 430px;
+  border-radius: 24px;
+}
+
+.edit-workout-fields {
+  margin: 16px 0;
+}
+
+.edit-field-group {
+  margin-bottom: 16px;
+}
+
+.edit-field-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.edit-field-group input,
+.edit-field-group select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.edit-field-group input:focus,
+.edit-field-group select:focus {
+  border-color: var(--accent);
+}
+
+.edit-field-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.edit-field-row .edit-field-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.edit-workout-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.edit-workout-icon {
+  font-size: 32px;
+}
+
+.edit-workout-title {
+  flex: 1;
+}
+
+.edit-workout-title h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.edit-workout-title p {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.delete-workout-btn {
+  background: rgba(255,71,87,0.15);
+  border: 1px solid rgba(255,71,87,0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  color: var(--danger);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 12px;
+  transition: all var(--transition);
+}
+
+.delete-workout-btn:hover {
+  background: rgba(255,71,87,0.25);
+}
+/* ─── Calorie Tracker Styles ─── */
+.calorie-summary-card {
+  background: linear-gradient(135deg, rgba(0,229,160,0.12), rgba(0,180,216,0.05));
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.calorie-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.calorie-summary-label {
+  font-size: 12px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.calorie-summary-value {
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.calorie-summary-unit {
+  font-size: 14px;
+  color: var(--text2);
+  margin-left: 4px;
+}
+
+.calorie-goal-display {
+  text-align: right;
+  background: var(--card);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.calorie-goal-display:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.calorie-goal-display span:first-child {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--accent2);
+  display: block;
+}
+
+.calorie-goal-label {
+  font-size: 10px;
+  color: var(--text2);
+}
+
+.calorie-macros {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
+  justify-content: space-around;
+}
+
+.macro-item {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.macro-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.macro-dot.protein { background: #00E5A0; }
+.macro-dot.carbs { background: #00B4D8; }
+.macro-dot.fats { background: #FFB830; }
+
+.quick-food-section {
+  margin-bottom: 20px;
+}
+
+.quick-food-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.quick-food-item {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.quick-food-item:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.quick-food-name {
+  font-size: 12px;
+  font-weight: 600;
+  display: block;
+}
+
+.quick-food-calories {
+  font-size: 10px;
+  color: var(--accent);
+}
+
+.food-log-list {
+  margin-bottom: 20px;
+}
+
+.food-log-item {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.food-log-info {
+  flex: 1;
+}
+
+.food-log-name {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.food-log-serving {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.food-log-nutrition {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.food-log-nutrition span {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.food-log-calories {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.food-log-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.food-log-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.food-delete-btn {
+  color: var(--danger);
+}
+
+.food-search-results {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.food-search-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.food-search-item:hover {
+  background: var(--accent-dim);
+}
+
+.food-search-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.food-search-calories {
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.divider {
+  text-align: center;
+  color: var(--text3);
+  font-size: 12px;
+  margin: 16px 0;
+  position: relative;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40%;
+  height: 1px;
+  background: var(--card-border);
+}
+
+.divider::before { left: 0; }
+.divider::after { right: 0; }
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-row .form-group {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.meal-suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.meal-suggestion {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.meal-suggestion:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.meal-suggestion-name {
+  font-size: 13px;
+  font-weight: 600;
+  display: block;
+}
+
+.meal-suggestion-calories {
+  font-size: 11px;
+  color: var(--accent);
+}
+/* ─── Calorie Calculator Styles ─── */
+.calculator-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.calculator-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--accent);
+}
+
+.sex-toggle {
+  display: flex;
+  gap: 12px;
+}
+
+.sex-btn {
+  flex: 1;
+  padding: 12px;
+  background: var(--bg3);
+  border: 2px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sex-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.calculate-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  font-size: 16px;
+}
+
+.calculator-results {
+  background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,180,216,0.03));
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.results-icon {
+  font-size: 28px;
+}
+
+.results-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.result-item.highlight {
+  background: var(--accent-dim);
+  margin: 8px -8px;
+  padding: 16px 12px;
+  border-radius: var(--radius-sm);
+  border-bottom: none;
+}
+
+.result-label {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.result-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.result-unit {
+  font-size: 11px;
+  color: var(--text3);
+  margin-left: 4px;
+}
+
+.bmi-display {
+  text-align: center;
+  padding: 12px;
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.bmi-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent2);
+}
+
+.bmi-category {
+  font-size: 12px;
+  color: var(--text2);
+  margin-left: 8px;
+}
+
+.macro-recommendation {
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-top: 16px;
+}
+
+.macro-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.macro-name {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.macro-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.action-buttons .btn {
+  flex: 1;
+}
+
+.saved-profile {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.saved-profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.saved-profile-header span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent2);
+}
+
+.saved-profile-info {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+/* ══════════════════════════════════════════
+   GRADIENTS & ANIMATIONS
+══════════════════════════════════════════ */
+
+/* ─── Animated Gradient Background ─── */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 229, 160, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(0, 229, 160, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 229, 160, 0); }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes rippleEffect {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ─── Gradient Classes ─── */
+.gradient-bg {
+  background: linear-gradient(135deg, #0A0A0F 0%, #1A1A2E 50%, #0A0A0F 100%);
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, #00E5A0 0%, #00B4D8 100%);
+}
+
+.gradient-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+}
+
+.gradient-border {
+  position: relative;
+  background: linear-gradient(135deg, #00E5A0, #00B4D8, #FFB830);
+  border-radius: var(--radius);
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: linear-gradient(135deg, #00E5A0, #00B4D8, #FFB830);
+  border-radius: var(--radius);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ─── Animated Elements ─── */
+.stat-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInUp 0.4s ease-out;
+  animation-fill-mode: both;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  background: linear-gradient(135deg, rgba(0,229,160,0.1), rgba(0,180,216,0.05));
+  border-color: var(--accent);
+}
+
+.exercise-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInLeft 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.exercise-card:hover {
+  transform: translateX(4px);
+  background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,180,216,0.03));
+}
+
+.schedule-day-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInUp 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.schedule-day-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,180,216,0.03));
+}
+
+.food-log-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInRight 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.food-log-item:hover {
+  transform: translateX(4px);
+  background: linear-gradient(135deg, rgba(0,229,160,0.06), rgba(0,180,216,0.02));
+}
+
+/* ─── Button Animations ─── */
+.btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #00E5A0 0%, #00B4D8 100%);
+  background-size: 200% 200%;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-position: 100% 50%;
+  transform: scale(1.02);
+  box-shadow: 0 4px 15px rgba(0, 229, 160, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-ghost {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.btn-ghost:hover {
+  background: linear-gradient(135deg, rgba(0,229,160,0.1), rgba(0,180,216,0.05));
+  border-color: var(--accent);
+}
+
+/* ─── Nav Button Animations ─── */
+.nav-btn {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #00E5A0, #00B4D8);
+  transition: width 0.3s ease;
+  border-radius: 2px;
+}
+
+.nav-btn.active::before {
+  width: 30px;
+}
+
+.nav-btn.active .nav-icon {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+.nav-icon {
+  transition: transform 0.2s ease;
+}
+
+.nav-btn:hover .nav-icon {
+  transform: scale(1.15);
+}
+
+/* ─── Progress Bar Animations ─── */
+.progress-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+/* ─── Card Hover Effects ─── */
+.card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 229, 160, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Water Fill Animation ─── */
+.water-fill {
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(180deg, 
+    rgba(0,180,216,0.8) 0%, 
+    rgba(0,100,200,0.9) 50%,
+    rgba(0,50,150,1) 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.water-fill::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+  animation: float 6s ease-in-out infinite;
+}
+
+/* ─── PR Card Glow Effect ─── */
+.pr-card {
+  transition: all 0.3s ease;
+  animation: scaleIn 0.4s ease-out;
+}
+
+.pr-card:hover {
+  transform: scale(1.02);
+  background: linear-gradient(135deg, rgba(0,229,160,0.12), rgba(0,180,216,0.06));
+  box-shadow: 0 4px 15px rgba(0, 229, 160, 0.2);
+}
+
+.pr-weight {
+  transition: all 0.3s ease;
+}
+
+.pr-card:hover .pr-weight {
+  transform: scale(1.1);
+  text-shadow: 0 0 10px rgba(0, 229, 160, 0.5);
+}
+
+/* ─── Water Bottle Glow ─── */
+.water-bottle {
+  transition: all 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+}
+
+.water-bottle:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 30px rgba(0, 180, 216, 0.3);
+}
+
+/* ─── Muscle Chip Animations ─── */
+.muscle-chip {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: scaleIn 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.muscle-chip:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,180,216,0.08));
+}
+
+/* ─── Schedule Exercise Tag Animations ─── */
+.schedule-exercise-tag {
+  transition: all 0.2s ease;
+}
+
+.schedule-exercise-tag:hover {
+  transform: scale(1.05);
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ─── Quick Food Item Animations ─── */
+.quick-food-item {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInUp 0.3s ease-out;
+  animation-fill-mode: both;
+}
+
+.quick-food-item:nth-child(1) { animation-delay: 0.02s; }
+.quick-food-item:nth-child(2) { animation-delay: 0.04s; }
+.quick-food-item:nth-child(3) { animation-delay: 0.06s; }
+.quick-food-item:nth-child(4) { animation-delay: 0.08s; }
+.quick-food-item:nth-child(5) { animation-delay: 0.1s; }
+.quick-food-item:nth-child(6) { animation-delay: 0.12s; }
+
+.quick-food-item:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, rgba(0,229,160,0.12), rgba(0,180,216,0.06));
+}
+
+/* ─── Modal Animations ─── */
+.modal {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-overlay {
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.open .modal {
+  transform: translateY(0);
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* ─── Toast Animation ─── */
+.toast {
+  background: linear-gradient(135deg, #1A1A24, #111118);
+  border-left: 3px solid var(--accent);
+  animation: slideInUp 0.3s ease-out;
+}
+
+/* ─── Rest Timer Pulse Animation ─── */
+.rest-timer.active {
+  background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,180,216,0.08));
+  border-color: var(--accent);
+  animation: glowPulse 1.5s infinite;
+}
+
+/* ─── Set Check Animation ─── */
+.set-check {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.set-check.checked {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.set-check.checked::after {
+  content: '✓';
+  color: #0A0A0F;
+  font-weight: bold;
+}
+
+/* ─── Exercise Card Loading Animation ─── */
+.exercise-group {
+  animation: slideInUp 0.4s ease-out;
+}
+
+/* ─── Session Card Hover ─── */
+.session-card {
+  transition: all 0.3s ease;
+}
+
+.session-card:hover {
+  transform: translateX(4px);
+  background: linear-gradient(135deg, rgba(0,229,160,0.06), rgba(0,180,216,0.02));
+  border-color: var(--accent);
+}
+
+/* ─── Goal Card Progress Glow ─── */
+.goal-card {
+  transition: all 0.3s ease;
+}
+
+.goal-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, rgba(0,229,160,0.06), rgba(0,180,216,0.02));
+}
+
+.progress-bar {
+  position: relative;
+}
+
+.progress-bar--alt {
+  background: linear-gradient(90deg, #00B4D8, #0096B8);
+}
+
+/* ─── Calorie Summary Gradient ─── */
+.calorie-summary-card {
+  background: linear-gradient(135deg, 
+    rgba(0, 229, 160, 0.12) 0%, 
+    rgba(0, 180, 216, 0.06) 50%,
+    rgba(255, 184, 48, 0.03) 100%
+  );
+}
+
+/* ─── Calculator Result Highlight ─── */
+.result-item.highlight {
+  background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,180,216,0.08));
+  animation: glowPulse 2s infinite;
+}
+
+/* ─── Page Transition Animations ─── */
+.page {
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page.active {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Scrollbar Styling with Gradient ─── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #00E5A0, #00B4D8);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #00B4D8, #00E5A0);
+}
+
+/* ─── Focus Ring Animation ─── */
+.form-input:focus, 
+.select-input:focus,
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(0, 229, 160, 0.2);
+  animation: glowPulse 1s infinite;
+}
+
+/* ─── Chip Active Animation ─── */
+.chip.active {
+  background: linear-gradient(135deg, rgba(0,229,160,0.2), rgba(0,180,216,0.1));
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* ─── Streak Button Animation ─── */
+#streak-btn {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+#streak-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, rgba(0,229,160,0.1), rgba(0,180,216,0.05));
+}
+
+/* ─── Loading Skeleton Animation ─── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg3) 25%,
+    var(--card) 50%,
+    var(--bg3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ─── Confetti Animation for PRs ─── */
+@keyframes confetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+
+.pr-celebration {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  font-size: 20px;
+  animation: confetti 1s ease-out forwards;
+}
+
+/* ─── Wave Animation for Water ─── */
+@keyframes wave {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-20px); }
+  100% { transform: translateX(0); }
+}
+
+.water-fill::after {
+  content: '💧';
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 20px;
+  opacity: 0.5;
+  animation: wave 2s ease-in-out infinite;
+}
+
+/* ─── Gradient Text Utility ─── */
+.gradient-text {
+  background: linear-gradient(135deg, #00E5A0, #00B4D8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #FFB830, #FF8C00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ─── Logo Animation ─── */
+.logo-icon {
+  animation: float 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+.logo-text {
+  background: linear-gradient(135deg, #00E5A0, #00B4D8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* ─── Number Input Styles for Better Mobile Experience ─── */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.5;
+  height: 24px;
+}
+
+input[type="number"]:focus::-webkit-inner-spin-button,
+input[type="number"]:focus::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Better touch targets for number inputs */
+.form-input[type="number"],
+.set-input[type="number"] {
+  font-size: 16px; /* Prevents zoom on iOS */
+  padding: 12px;
+}
+
+/* Decimal input specific */
+input[inputmode="decimal"] {
+  letter-spacing: normal;
+}
+
+/* Make step buttons larger for mobile */
+input[type="number"]::-webkit-inner-spin-button {
+  transform: scale(1.2);
+  margin-right: 4px;
+}
