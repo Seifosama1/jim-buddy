@@ -2932,7 +2932,8 @@ input[type="number"]::-webkit-inner-spin-button {
   }
   #sound-toggle-btn,
   #calculator-header-btn,
-  #streak-btn {
+  #streak-btn,#performance-mode-btn 
+  {
     padding: 4px 8px;
     font-size: 12px;
   }
@@ -3065,13 +3066,13 @@ canvas {
   animation: none !important;
 }
 
-
-
 /* Force visibility of performance button */
 #performance-mode-btn {
-  display: inline-flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+  background: none; border: none; color: var(--text2);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  padding: 6px 10px; border-radius: var(--radius-sm);
+  transition: background var(--transition);
+  font-family: var(--font);
 }
 
 /* Make sure header-left shows all buttons */
@@ -3090,7 +3091,11 @@ canvas {
     min-width: 70px !important;
   }
   #performance-mode-btn {
-    padding: 4px 8px !important;
-    font-size: 12px !important;
+    background: none; border: none; color: var(--text2);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  padding: 6px 10px; border-radius: var(--radius-sm);
+  transition: background var(--transition);
+  font-family: var(--font);
   }
 }
+
