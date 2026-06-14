@@ -12,6 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="icon.png">
+  
 </head>
 <body>
 
@@ -41,6 +42,7 @@
 
     <!-- Header -->
     <header id="app-header">
+      <button class="icon-btn" id="sound-toggle-btn" title="Sound on" onclick="SoundManager.toggle()">🔊</button>
       <div class="header-inner">
         <div class="header-logo">
           <span class="logo-icon">💪</span>
@@ -162,12 +164,27 @@
         </div>
       </section>
 
-      <!-- ═══════════════════ WORKOUTS ═══════════════════ -->
+            <!-- ═══════════════════ WORKOUTS ═══════════════════ -->
       <section class="page" id="page-workouts">
         <div class="page-scroll">
           <div class="page-header">
             <h2 class="page-title">Workouts</h2>
             <button class="btn btn-primary btn-sm" id="create-workout-btn">+ Create</button>
+          </div>
+
+          <!-- Workout Queue Panel -->
+          <div class="workout-queue-panel" id="workout-queue-panel">
+            <div class="workout-queue-header">
+              <span class="workout-queue-title">📋 Today's Workout Queue</span>
+              <span class="workout-queue-count" id="queue-count">0</span>
+            </div>
+            <div class="workout-queue-list" id="workout-queue-list">
+              <div class="queue-empty">No exercises added. Tap + on any exercise to add to queue.</div>
+            </div>
+            <div class="queue-actions" id="queue-actions" style="display: none;">
+              <button class="btn btn-primary" style="flex:1" onclick="saveFullSession()">💾 Save Today's Session</button>
+              <button class="btn btn-ghost" style="flex:0.3" onclick="clearWorkoutQueue()">🗑 Clear</button>
+            </div>
           </div>
 
           <!-- Search -->
@@ -413,41 +430,6 @@
         </div>
       </section>
 
-      <!-- ═══════════════════ WEEK SCHEDULE ═══════════════════ -->
-      <section class="page" id="page-schedule">
-        <div class="page-scroll">
-          <div class="page-header">
-            <h2 class="page-title">Weekly Schedule</h2>
-            <button class="btn btn-primary btn-sm" onclick="resetWeeklySchedule()">Reset Plan</button>
-          </div>
-          
-          <div class="schedule-intro">
-            <p class="schedule-intro-text">📅 Plan your week. Add exercises to each day and follow along.</p>
-          </div>
-          
-          <div id="weekly-schedule-grid" class="weekly-schedule-grid">
-            <!-- Dynamically populated -->
-          </div>
-          
-          <div class="schedule-tips">
-            <h4 class="schedule-tips-title">💡 Split Ideas</h4>
-            <div class="schedule-tips-grid">
-              <div class="schedule-tip" onclick="applySplitTemplate('push-pull-legs')">
-                <span>🏋️ Push/Pull/Legs</span>
-              </div>
-              <div class="schedule-tip" onclick="applySplitTemplate('upper-lower')">
-                <span>⬆️ Upper/Lower</span>
-              </div>
-              <div class="schedule-tip" onclick="applySplitTemplate('bro-split')">
-                <span>💪 Bro Split (5-day)</span>
-              </div>
-              <div class="schedule-tip" onclick="applySplitTemplate('full-body')">
-                <span>🔥 Full Body</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
             <!-- ═══════════════════ CALORIE TRACKER ═══════════════════ -->
       <section class="page" id="page-calorie">
@@ -579,15 +561,16 @@
           <label class="form-label">Notes (optional)</label>
           <textarea class="form-input" id="wm-notes" rows="2" placeholder="Tips, variations…"></textarea>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('workout-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveWorkout()">Save Workout</button>
-      </div>
     </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('session-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveQueuedExercise()">Save Exercise</button>
+      </div>
+      </div>
   </div>
 
   <!-- Session Logger Modal -->
+  <  <!-- Session Logger Modal -->
   <div class="modal-overlay" id="session-modal">
     <div class="modal modal--tall">
       <div class="modal-header">
@@ -599,7 +582,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" onclick="closeModal('session-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveSession()">Save Session</button>
+        <button class="btn btn-primary" onclick="saveQueuedExercise()">Save Exercise</button>
       </div>
     </div>
   </div>
@@ -706,8 +689,8 @@
         </button>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal('edit-schedule-workout-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="saveScheduleWorkoutEdit()">Save Changes</button>
+        <button class="btn btn-ghost" onclick="closeModal('workout-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveWorkout()">Save Workout</button>
       </div>
     </div>
   </div>
@@ -910,6 +893,7 @@
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="workouts-data.js"></script>
+  <script src="sounds.js"></script>
   <script src="app.js"></script>
   
 </body>

@@ -380,30 +380,98 @@ textarea.form-input { resize: none; }
 .wl-num-label { font-size: 11px; color: var(--text2); font-weight: 600; }
 
 /* ── Water ── */
-.water-container { display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
+/* ─── Water ── Fix: Fill from bottom to top ── */
+.water-container { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  padding: 20px 0; 
+}
+
 .water-bottle {
-  width: 120px; height: 200px;
+  width: 120px;
+  height: 200px;
   background: rgba(255,255,255,0.05);
   border: 2px solid var(--accent2);
   border-radius: 20px 20px 28px 28px;
-  position: relative; overflow: hidden;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
   box-shadow: 0 0 30px rgba(0,180,216,0.15);
 }
+
 .water-fill {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  background: linear-gradient(180deg, rgba(0,180,216,0.7), rgba(0,100,200,0.8));
-  transition: height 0.6s cubic-bezier(0.4,0,0.2,1);
+  position: absolute;
+  bottom: 0;        /* Changed from top:0 to bottom:0 */
+  left: 0;
+  right: 0;
+  height: 0%;       /* Start at 0% height */
+  background: linear-gradient(180deg, 
+    rgba(0,180,216,0.9) 0%, 
+    rgba(0,100,200,0.85) 50%,
+    rgba(0,50,150,0.8) 100%
+  );
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 0 0 26px 26px;
 }
-.water-label-overlay {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 2;
+
+/* Water wave animation */
+.water-fill::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -50%;
+  width: 200%;
+  height: 20px;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: wave 2s ease-in-out infinite;
 }
-.water-label-overlay span:first-child { font-size: 28px; font-weight: 900; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.4); }
-.water-unit { font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 600; }
-.water-goal-label { margin-top: 12px; font-size: 13px; color: var(--text2); font-weight: 600; }
-.water-percentage { font-size: 32px; font-weight: 900; color: var(--accent2); margin-top: 4px; }
+
+@keyframes wave {
+  0% { transform: translateX(0) translateY(0); }
+  50% { transform: translateX(-25%) translateY(-3px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+
+.water-label-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.water-label-overlay span:first-child { 
+  font-size: 28px; 
+  font-weight: 900; 
+  color: #fff; 
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4); 
+}
+
+.water-unit { 
+  font-size: 12px; 
+  color: rgba(255,255,255,0.7); 
+  font-weight: 600; 
+}
+
+.water-goal-label { 
+  margin-top: 12px; 
+  font-size: 13px; 
+  color: var(--text2); 
+  font-weight: 600; 
+  cursor: pointer;
+}
+
+.water-percentage { 
+  font-size: 32px; 
+  font-weight: 900; 
+  color: var(--accent2); 
+  margin-top: 4px; 
+}
 
 .water-quick-add {
   display: grid; grid-template-columns: repeat(2,1fr); gap: 10px;
@@ -2257,4 +2325,155 @@ input[type="number"]::-webkit-inner-spin-button {
   .biceps-emoji {
     font-size: 48px;
   }
+}
+.water-fill {
+  position: absolute;
+  bottom: 0;        /* Changed from top:0 to bottom:0 */
+  left: 0;
+  right: 0;
+  height: 0%;       /* Start at 0% height */
+  background: linear-gradient(180deg, 
+    rgba(0,180,216,0.9) 0%, 
+    rgba(0,100,200,0.85) 50%,
+    rgba(0,50,150,0.8) 100%
+  );
+  transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 0 0 26px 26px;
+}
+/* ─── Workout Queue Styles ─── */
+.workout-queue-panel {
+  background: linear-gradient(135deg, rgba(0,229,160,0.08), rgba(0,180,216,0.03));
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.workout-queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.workout-queue-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.workout-queue-count {
+  background: var(--accent-dim);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.workout-queue-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.workout-queue-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.workout-queue-item:hover {
+  background: var(--card);
+}
+
+.workout-queue-item.completed {
+  opacity: 0.6;
+  background: rgba(0, 229, 160, 0.05);
+}
+
+.workout-queue-item-info {
+  flex: 1;
+}
+
+.workout-queue-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workout-queue-status {
+  font-size: 18px;
+}
+
+.workout-queue-status.completed {
+  color: var(--accent);
+}
+
+.workout-queue-item-detail {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 2px;
+}
+
+.workout-queue-remove {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.workout-queue-remove:hover {
+  color: var(--danger);
+  background: rgba(255,71,87,0.1);
+}
+
+.queue-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+/* Queue Action Buttons */
+.queue-actions {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--card-border);
+}
+
+/* Save Session Modal */
+.session-summary {
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.session-summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.session-summary-label {
+  color: var(--text2);
+}
+
+.session-summary-value {
+  font-weight: 700;
+  color: var(--accent);
 }

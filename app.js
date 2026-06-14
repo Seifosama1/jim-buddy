@@ -1,3 +1,6 @@
+// Sound effects (after DB constant)
+// Sound Manager is loaded from sounds.js
+
 /* ══════════════════════════════════════════
    JIM BUDDY — App Logic (Complete)
 ══════════════════════════════════════════ */
@@ -82,7 +85,9 @@ let state = {
   editingScheduleWorkoutIndex: null,
   scheduledSession: null,
   scheduledCurrentIndex: null,
-  selectedFoodId: null
+  selectedFoodId: null,
+  activeQueueIndex: null,  // Add this line
+  lastCalculation: null     // Add this line
 };
 
 // ─── Helper Functions ────────────────────────────────────
@@ -109,8 +114,10 @@ function getWeekStart() {
   return d.toISOString();
 }
 
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) { 
+  document.getElementById(id).classList.add('open');
+  SoundManager.modalOpen();
+}function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 let toastTimer;
 function toast(msg) {
@@ -872,6 +879,8 @@ function applySplitTemplate(template) {
 
 // ─── Navigation ─────────────────────────────────────────
 function navigate(page) {
+    SoundManager.tap();
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
@@ -917,18 +926,30 @@ function prevDay(dateStr) {
 }
 
 function sessionCardHTML(s) {
+  const exerciseCount = s.exercises?.length || 0;
+  const totalSets = s.totalSets || s.exercises?.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0) || 0;
+  
   return `
-    <div class="session-card">
+    <div class="session-card" onclick="viewSessionDetailsFromDashboard('${s.id}')">
       <div class="session-card-header">
-        <span class="session-card-name">${escHtml(s.name)}</span>
+        <span class="session-card-name">${escHtml(s.name || 'Workout Session')}</span>
         <span class="session-card-date">${formatDate(s.date)}</span>
       </div>
-      <div class="session-card-detail">${s.exercises ? s.exercises.length : 0} exercise(s) · ${s.totalSets || 0} sets</div>
+      <div class="session-card-detail">${exerciseCount} exercise(s) · ${totalSets} sets</div>
       <div class="session-card-sets">
-        ${(s.exercises || []).slice(0, 4).map(e => `<span class="session-set-tag">${escHtml(e.name)}</span>`).join('')}
-        ${(s.exercises || []).length > 4 ? `<span class="session-set-tag">+${s.exercises.length - 4} more</span>` : ''}
+        ${s.exercises?.slice(0, 4).map(e => `<span class="session-set-tag">${escHtml(e.name)}</span>`).join('')}
+        ${exerciseCount > 4 ? `<span class="session-set-tag">+${exerciseCount - 4} more</span>` : ''}
       </div>
     </div>`;
+}
+
+// Add this function to view from dashboard by ID
+function viewSessionDetailsFromDashboard(sessionId) {
+  const { sessions } = getData();
+  const sessionIndex = sessions.findIndex(s => s.id === sessionId);
+  if (sessionIndex !== -1) {
+    viewSessionDetails(sessionIndex);
+  }
 }
 
 function getTodayWater(waterLog) {
@@ -1018,13 +1039,16 @@ function filterExercises() {
     <div class="exercise-group">
       <div class="exercise-group-title">${MUSCLE_EMOJIS[muscle] || ''} ${muscle}</div>
       ${exs.map(e => `
-        <div class="exercise-card" onclick="startSessionForExercise('${e.id}')">
-          <div class="exercise-info">
+        <div class="exercise-card">
+          <div class="exercise-info" style="flex:1">
             <div class="exercise-name">${escHtml(e.name)}</div>
             <div class="exercise-meta">${e.isCardio ? 'Cardio' : `${e.sets} sets × ${e.reps} reps · ${e.rest}s rest`}</div>
             ${prs[e.id] ? `<div class="exercise-pr">PR: ${prs[e.id].weight}kg</div>` : ''}
           </div>
-          <span style="color:var(--text3);font-size:20px">▶</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); addToWorkoutQueue('${e.id}', '${escHtml(e.name)}')" style="padding:6px 12px">+ Queue</button>
+            <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); startSessionForExercise('${e.id}')" style="padding:6px 12px">▶ Start</button>
+          </div>
         </div>`).join('')}
     </div>`).join('');
 }
@@ -1035,13 +1059,14 @@ function renderCustomWorkouts() {
   if (!customWorkouts.length) { el.innerHTML = '<p class="muted-text">No custom workouts yet.</p>'; return; }
   el.innerHTML = customWorkouts.map(w => `
     <div class="exercise-card">
-      <div class="exercise-info" onclick="startSessionForCustom('${w.id}')">
+      <div class="exercise-info" style="flex:1">
         <div class="exercise-name">${escHtml(w.name)}</div>
         <div class="exercise-meta">${w.muscle} · ${w.sets} sets × ${w.reps} reps · ${w.rest}s rest</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-sm btn-ghost" onclick="editWorkout('${w.id}')">✏️</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteWorkout('${w.id}')">🗑</button>
+        <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); addToWorkoutQueue('${w.id}', '${escHtml(w.name)}')" style="padding:6px 12px">+ Queue</button>
+        <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation(); editWorkout('${w.id}')">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteWorkout('${w.id}')">🗑</button>
       </div>
     </div>`).join('');
 }
@@ -1171,6 +1196,7 @@ function toggleSetCheck(i, rest) {
   const num = document.getElementById('set-num-' + i);
   const isDone = check.classList.toggle('checked');
   num.classList.toggle('done', isDone);
+  isDone ? SoundManager.check() : SoundManager.uncheck();
   if (isDone && rest > 0) startRestTimer(rest);
 }
 
@@ -1361,8 +1387,36 @@ function renderPRs(prs) {
 
 function renderSessionHistory(sessions) {
   const el = document.getElementById('session-history-list');
-  if (!sessions.length) { el.innerHTML = '<p class="muted-text">No sessions logged yet.</p>'; return; }
-  el.innerHTML = [...sessions].reverse().map(s => sessionCardHTML(s)).join('');
+  if (!sessions.length) { 
+    el.innerHTML = '<p class="muted-text">No sessions logged yet.</p>'; 
+    return; 
+  }
+  
+  // Sort sessions by date (newest first)
+  const sortedSessions = [...sessions].reverse();
+  
+  el.innerHTML = sortedSessions.map((session, idx) => {
+    // Count total exercises in this session
+    const exerciseCount = session.exercises?.length || 0;
+    const totalSets = session.totalSets || session.exercises?.reduce((sum, ex) => sum + (ex.sets?.length || 0), 0) || 0;
+    
+    return `
+      <div class="session-card" onclick="viewSessionDetails(${sessions.length - 1 - idx})">
+        <div class="session-card-header">
+          <span class="session-card-name">${escHtml(session.name || 'Workout Session')}</span>
+          <span class="session-card-date">${formatDate(session.date)}</span>
+        </div>
+        <div class="session-card-detail">${exerciseCount} exercise(s) · ${totalSets} sets</div>
+        <div class="session-card-sets">
+          ${session.exercises?.slice(0, 4).map(e => `<span class="session-set-tag">${escHtml(e.name)}</span>`).join('')}
+          ${exerciseCount > 4 ? `<span class="session-set-tag">+${exerciseCount - 4} more</span>` : ''}
+        </div>
+        <button class="btn btn-sm btn-ghost" style="margin-top:8px;width:100%" onclick="event.stopPropagation(); viewSessionDetails(${sessions.length - 1 - idx})">
+          📋 View Full Session
+        </button>
+      </div>
+    `;
+  }).join('');
 }
 
 // ─── Goals ───────────────────────────────────────────────
@@ -1607,12 +1661,18 @@ function renderWater() {
   const today = getTodayWater(waterLog);
   const pct = Math.min(100, (today / goal) * 100);
 
-  document.getElementById('water-fill').style.height = pct + '%';
+  // Fix: Water fill should be height from bottom
+  const waterFill = document.getElementById('water-fill');
+  if (waterFill) {
+    waterFill.style.height = pct + '%';
+  }
+  
   document.getElementById('water-current-ml').textContent = today;
   document.getElementById('water-goal-display').textContent = goal;
   document.getElementById('water-goal-input').value = goal;
   document.getElementById('water-pct').textContent = Math.round(pct) + '%';
 
+  // Log
   const todayLogs = waterLog.filter(l => l.date.startsWith(new Date().toISOString().split('T')[0]));
   const el = document.getElementById('water-log-list');
   el.innerHTML = todayLogs.length
@@ -1628,6 +1688,7 @@ function addWater(ml) {
   const log = getData().waterLog;
   log.push({ amount: ml, date: new Date().toISOString() });
   DB.set('waterLog', log);
+  SoundManager.waterSplash();
   toast(`+${ml}ml 💧`);
   renderWater();
   updateDashWater();
@@ -1671,6 +1732,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderCalorieTracker();
   displaySavedProfile();
   loadSavedProfile();
+  loadWorkoutQueue(); // Add this line
+
   
   const deleteBtn = document.getElementById('delete-schedule-workout-btn');
   if (deleteBtn) {
@@ -1681,6 +1744,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (goalDisplay) {
     goalDisplay.onclick = () => openCalorieGoalModal();
   }
+  
 });
 // ─── Calorie Calculator Functions ─────────────────────────
 
@@ -1942,6 +2006,633 @@ function setupNumericInputs() {
       input.setAttribute('pattern', '[0-9]*');
     }
   });
+}
+
+// ─── Workout Queue System ───────────────────────────────────
+
+let workoutQueue = [];
+
+// Load queue from localStorage
+function loadWorkoutQueue() {
+  const saved = DB.get('workoutQueue', []);
+  workoutQueue = saved;
+  renderWorkoutQueue();
+}
+
+// Save queue to localStorage
+function saveWorkoutQueue() {
+  DB.set('workoutQueue', workoutQueue);
+  renderWorkoutQueue();
+}
+
+// Add exercise to queue
+function addToWorkoutQueue(exerciseId, exerciseName) {
+  // Find the exercise data
+  const allExercises = [...EXERCISE_LIBRARY, ...(getData().customWorkouts || [])];
+  const exercise = allExercises.find(e => e.id === exerciseId);
+  if (!exercise) return;
+  
+  // Check if already in queue
+  if (workoutQueue.some(item => item.id === exerciseId)) {
+    toast(`${exercise.name} is already in your queue`);
+    return;
+  }
+  
+  // Add to queue
+  workoutQueue.push({
+    id: exercise.id,
+    name: exercise.name,
+    sets: exercise.sets || 3,
+    reps: exercise.reps || 10,
+    rest: exercise.rest || 60,
+    isCardio: exercise.isCardio || false,
+    muscle: exercise.muscle || 'General',
+    completed: false,
+    loggedSets: [],
+    maxWeight: 0
+  });
+  
+  saveWorkoutQueue();
+  toast(`➕ Added ${exercise.name} to queue`);
+  
+  if (typeof SoundManager !== 'undefined') SoundManager.playAdd();
+}
+
+// Remove exercise from queue
+function removeFromQueue(index) {
+  const removed = workoutQueue[index];
+  workoutQueue.splice(index, 1);
+  saveWorkoutQueue();
+  toast(`Removed ${removed.name} from queue`);
+  if (typeof SoundManager !== 'undefined') SoundManager.playDelete();
+}
+
+// Clear entire queue
+function clearWorkoutQueue() {
+  if (confirm('Clear your entire workout queue?')) {
+    workoutQueue = [];
+    saveWorkoutQueue();
+    toast('Queue cleared');
+  }
+}
+
+// Render queue list
+function renderWorkoutQueue() {
+  const container = document.getElementById('workout-queue-list');
+  const countEl = document.getElementById('queue-count');
+  const actionsEl = document.getElementById('queue-actions');
+  
+  if (!container) return;
+  
+  const incompleteCount = workoutQueue.filter(item => !item.completed).length;
+  const totalCount = workoutQueue.length;
+  
+  if (countEl) countEl.textContent = `${incompleteCount}/${totalCount}`;
+  
+  if (workoutQueue.length === 0) {
+    container.innerHTML = '<div class="queue-empty">No exercises added. Tap + on any exercise to add to queue.</div>';
+    if (actionsEl) actionsEl.style.display = 'none';
+    return;
+  }
+  
+  if (actionsEl) actionsEl.style.display = 'flex';
+  
+  container.innerHTML = workoutQueue.map((item, idx) => {
+    // Calculate how many sets have data
+    const hasData = item.loggedSets && item.loggedSets.length > 0;
+    const completedSets = item.loggedSets?.filter(s => s.done).length || 0;
+    const totalSets = item.sets || 3;
+    
+    return `
+      <div class="workout-queue-item ${item.completed ? 'completed' : ''}">
+        <div class="workout-queue-item-info" style="flex:1">
+          <div class="workout-queue-item-name">
+            <span class="workout-queue-status ${item.completed ? 'completed' : ''}">
+              ${item.completed ? '✅' : (hasData ? '📝' : '⭕')}
+            </span>
+            ${escHtml(item.name)}
+          </div>
+          <div class="workout-queue-item-detail">
+            ${item.isCardio ? 'Cardio' : `${item.sets} sets × ${item.reps} reps · ${item.rest}s rest`}
+            ${hasData ? ` · Logged: ${completedSets}/${totalSets} sets` : ''}
+            ${item.completed && item.maxWeight > 0 ? ` · Max: ${item.maxWeight}kg` : ''}
+          </div>
+        </div>
+        <div style="display:flex; gap: 6px;">
+          <button class="btn btn-sm btn-primary" style="padding: 4px 10px; font-size: 11px;" onclick="event.stopPropagation(); openQueueExerciseModal(${idx})">
+            ${hasData ? '✏️ Edit' : '📝 Log'}
+          </button>
+          <button class="workout-queue-remove" onclick="event.stopPropagation(); removeFromQueue(${idx})" title="Remove">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Open modal to log sets for a queued exercise
+function openQueueExerciseModal(queueIndex) {
+  const exercise = workoutQueue[queueIndex];
+  if (!exercise) return;
+  
+  state.activeQueueIndex = queueIndex;
+  state.activeSession = { 
+    exercise: exercise, 
+    sets: exercise.loggedSets || [],
+    isQueued: true 
+  };
+  
+  document.getElementById('session-modal-title').textContent = `Log: ${exercise.name}`;
+  const body = document.getElementById('session-modal-body');
+  const sets = exercise.sets || 3;
+  const isCardio = exercise.isCardio;
+  
+  // Pre-fill existing logged sets
+  let setsHtml = '';
+  if (!isCardio) {
+    setsHtml = `
+      <div class="set-labels">
+        <span>Set</span><span>Weight (kg)</span><span>Reps</span><span>✓</span>
+      </div>
+      ${Array.from({length: sets}, (_, i) => {
+        const existingSet = exercise.loggedSets && exercise.loggedSets[i];
+        const isDone = existingSet?.done || false;
+        // Load saved values - THIS IS KEY
+        const weightValue = (existingSet?.weight !== undefined && existingSet?.weight !== null) ? existingSet.weight : '';
+        const repsValue = (existingSet?.reps !== undefined && existingSet?.reps !== null) ? existingSet.reps : '';
+        return `
+          <div class="set-row" id="set-row-${i}">
+            <div class="set-num ${isDone ? 'done' : ''}" id="set-num-${i}">${i+1}</div>
+            <input class="set-input" type="number" inputmode="decimal" id="set-weight-${i}" value="${weightValue}" placeholder="0" step="0.5" />
+            <input class="set-input" type="number" inputmode="numeric" id="set-reps-${i}" value="${repsValue}" placeholder="${exercise.reps || 10}" />
+            <div class="set-check ${isDone ? 'checked' : ''}" id="set-check-${i}" onclick="toggleQueuedSetCheck(${i})"></div>
+          </div>`;
+      }).join('')}
+      <div style="margin-top:8px; font-size:12px; color:var(--text3); text-align:center;">
+        💡 Enter weight & reps, tap ✓ to mark set done. Press "Save Exercise" to save.
+      </div>
+    `;
+  } else {
+    const existingSet = exercise.loggedSets && exercise.loggedSets[0];
+    setsHtml = `
+      <div class="form-group" style="margin-top:8px">
+        <label class="form-label">Duration (minutes)</label>
+        <input class="set-input" type="number" inputmode="numeric" id="cardio-session-duration" value="${existingSet?.duration || ''}" placeholder="30" style="width:100%" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Distance (km, optional)</label>
+        <input class="set-input" type="number" inputmode="decimal" id="cardio-session-distance" value="${existingSet?.distance || ''}" placeholder="5" step="0.1" style="width:100%" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Intensity (1-10, optional)</label>
+        <input class="set-input" type="number" inputmode="numeric" id="cardio-session-intensity" value="${existingSet?.intensity || ''}" placeholder="7" min="1" max="10" style="width:100%" />
+      </div>
+    `;
+  }
+  
+  body.innerHTML = `
+    <div class="session-exercise-title">${escHtml(exercise.name)}</div>
+    ${setsHtml}
+    <div class="rest-timer" id="rest-timer-box">
+      <div class="timer-display" id="timer-display">0:00</div>
+      <div class="timer-label">REST · tap to skip</div>
+      <button class="btn btn-sm btn-ghost" style="margin-top:8px" onclick="skipTimer()">Skip</button>
+    </div>
+  `;
+  
+  openModal('session-modal');
+}
+
+// Toggle set check for queued exercise
+function toggleQueuedSetCheck(setIndex) {
+  const check = document.getElementById('set-check-' + setIndex);
+  const num = document.getElementById('set-num-' + setIndex);
+  const isDone = check.classList.toggle('checked');
+  num.classList.toggle('done', isDone);
+  
+  if (isDone && typeof SoundManager !== 'undefined') SoundManager.playSetComplete();
+}
+
+// Save current exercise's logged sets to queue
+function saveQueuedExercise() {
+  const queueIndex = state.activeQueueIndex;
+  const exercise = workoutQueue[queueIndex];
+  if (!exercise) return;
+  
+  const isCardio = exercise.isCardio;
+  
+  if (isCardio) {
+    const duration = parseInt(document.getElementById('cardio-session-duration')?.value) || 0;
+    const distance = parseFloat(document.getElementById('cardio-session-distance')?.value) || null;
+    const intensity = parseInt(document.getElementById('cardio-session-intensity')?.value) || null;
+    
+    if (!duration) { 
+      toast('Please enter a duration'); 
+      return; 
+    }
+    
+    exercise.loggedSets = [{ duration, distance, intensity, done: true }];
+    exercise.completed = true;
+    exercise.maxWeight = 0;
+    saveWorkoutQueue();
+    toast(`✅ Saved ${exercise.name}: ${duration} minutes`);
+    
+  } else {
+    const sets = exercise.sets || 3;
+    const loggedSets = [];
+    let maxWeight = 0;
+    let allCompleted = true;
+    
+    // Get ALL values from inputs (even if not marked done)
+    for (let i = 0; i < sets; i++) {
+      const weightInput = document.getElementById('set-weight-' + i);
+      const repsInput = document.getElementById('set-reps-' + i);
+      const checkBox = document.getElementById('set-check-' + i);
+      
+      let w = 0;
+      let r = 0;
+      let done = false;
+      
+      if (weightInput) w = parseFloat(weightInput.value) || 0;
+      if (repsInput) r = parseInt(repsInput.value) || 0;
+      if (checkBox) done = checkBox.classList.contains('checked');
+      
+      loggedSets.push({ weight: w, reps: r, done: done });
+      if (w > maxWeight) maxWeight = w;
+      if (!done) allCompleted = false;
+    }
+    
+    // Save ALL entered data (including empty ones)
+    exercise.loggedSets = loggedSets;
+    exercise.maxWeight = maxWeight;
+    exercise.completed = allCompleted;
+    
+    // Save to localStorage
+    saveWorkoutQueue();
+    
+    const completedCount = loggedSets.filter(s => s.done).length;
+    const weightDisplay = maxWeight > 0 ? `${maxWeight}kg` : 'Bodyweight';
+    toast(`✅ Saved ${exercise.name}: ${completedCount}/${sets} sets, max ${weightDisplay}`);
+    
+    // Update PR
+    if (maxWeight > 0) {
+      const prs = getData().prs;
+      if (!prs[exercise.id] || maxWeight > prs[exercise.id].weight) {
+        prs[exercise.id] = { weight: maxWeight, date: new Date().toISOString(), name: exercise.name };
+        DB.set('prs', prs);
+        setTimeout(() => toast('🏆 New PR! ' + maxWeight + 'kg'), 1000);
+        if (typeof SoundManager !== 'undefined') SoundManager.playSuccess();
+      }
+    }
+  }
+  
+  closeModal('session-modal');
+  if (typeof SoundManager !== 'undefined') SoundManager.playAdd();
+}
+
+
+// Save entire session to history
+function saveFullSession() {
+  const completedExercises = workoutQueue.filter(item => item.completed);
+  const incompleteExercises = workoutQueue.filter(item => !item.completed);
+  
+  if (completedExercises.length === 0) {
+    toast('Complete at least one exercise before saving');
+    return;
+  }
+  
+  if (incompleteExercises.length > 0) {
+    if (!confirm(`${incompleteExercises.length} exercise(s) not completed. Save only completed ones?`)) return;
+  }
+  
+  // Calculate total sets
+  const totalSets = completedExercises.reduce((sum, ex) => {
+    return sum + (ex.loggedSets?.filter(set => set.done).length || 0);
+  }, 0);
+  
+  // Create ONE session with ALL completed exercises
+  const sessionData = {
+    id: 'sess_' + Date.now(),
+    date: new Date().toISOString(),
+    name: `${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} Workout`,
+    type: 'full_session',
+    exercises: completedExercises.map(ex => ({
+      id: ex.id,
+      name: ex.name,
+      isCardio: ex.isCardio || false,
+      sets: ex.loggedSets || [],
+      maxWeight: ex.maxWeight || 0
+    })),
+    totalExercises: completedExercises.length,
+    totalSets: totalSets
+  };
+  
+  // Save to sessions
+  const sessions = getData().sessions;
+  sessions.push(sessionData);
+  DB.set('sessions', sessions);
+  
+  // Also log cardio separately
+  completedExercises.filter(ex => ex.isCardio).forEach(ex => {
+    const cardioLog = getData().cardioLog;
+    const set = ex.loggedSets?.[0] || {};
+    cardioLog.push({
+      type: ex.name,
+      duration: set?.duration || 0,
+      distance: set?.distance || null,
+      calories: null,
+      date: new Date().toISOString()
+    });
+    DB.set('cardioLog', cardioLog);
+  });
+  
+  // Update PRs for all exercises
+  completedExercises.forEach(ex => {
+    if (ex.maxWeight > 0 && !ex.isCardio) {
+      const prs = getData().prs;
+      if (!prs[ex.id] || ex.maxWeight > prs[ex.id].weight) {
+        prs[ex.id] = { weight: ex.maxWeight, date: new Date().toISOString(), name: ex.name };
+        DB.set('prs', prs);
+      }
+    }
+  });
+  
+  // Clear completed exercises from queue
+  workoutQueue = workoutQueue.filter(item => !item.completed);
+  saveWorkoutQueue();
+  
+  if (typeof SoundManager !== 'undefined') SoundManager.playWorkoutComplete();
+  toast(`🎉 Session saved! ${completedExercises.length} exercises, ${totalSets} sets completed`);
+  
+  // Refresh UI
+  if (state.currentPage === 'progress') renderProgress();
+  if (state.currentPage === 'home') renderDashboard();
+}
+
+// Quick toggle exercise completion (for testing)
+// Quick toggle exercise completion (for testing)
+// Quick toggle exercise completion (for testing)
+function quickCompleteExercise(index) {
+  const exercise = workoutQueue[index];
+  if (!exercise) return;
+  
+  if (!exercise.completed) {
+    // Auto-fill with realistic default values based on exercise
+    const sets = exercise.sets || 3;
+    const loggedSets = [];
+    let defaultWeight = 0;
+    let defaultReps = exercise.reps || 10;
+    
+    // Set different default weights based on exercise name
+    const exerciseName = exercise.name.toLowerCase();
+    
+    if (exerciseName.includes('pull') || exerciseName.includes('chin')) {
+      defaultWeight = 0; // Bodyweight
+      defaultReps = 8;
+    } else if (exerciseName.includes('push-up')) {
+      defaultWeight = 0; // Bodyweight
+      defaultReps = 20;
+    } else if (exerciseName.includes('squat')) {
+      defaultWeight = 100;
+    } else if (exerciseName.includes('deadlift')) {
+      defaultWeight = 140;
+    } else if (exerciseName.includes('bench')) {
+      defaultWeight = 80;
+    } else if (exerciseName.includes('press') && exerciseName.includes('overhead')) {
+      defaultWeight = 50;
+    } else if (exerciseName.includes('curl')) {
+      defaultWeight = 30;
+    } else if (exerciseName.includes('tricep')) {
+      defaultWeight = 30;
+    } else if (exerciseName.includes('row')) {
+      defaultWeight = 60;
+    } else if (exerciseName.includes('leg press')) {
+      defaultWeight = 150;
+    } else if (exerciseName.includes('lat pulldown')) {
+      defaultWeight = 60;
+    } else {
+      defaultWeight = 40;
+    }
+    
+    for (let i = 0; i < sets; i++) {
+      loggedSets.push({ 
+        weight: defaultWeight, 
+        reps: defaultReps, 
+        done: true 
+      });
+    }
+    
+    exercise.loggedSets = loggedSets;
+    exercise.maxWeight = defaultWeight;
+    exercise.completed = true;
+    saveWorkoutQueue();
+    
+    const weightDisplay = defaultWeight === 0 ? 'Bodyweight' : `${defaultWeight}kg`;
+    toast(`✅ Marked ${exercise.name} as completed (${weightDisplay} × ${defaultReps} reps)`);
+  } else {
+    exercise.completed = false;
+    exercise.loggedSets = [];
+    exercise.maxWeight = 0;
+    saveWorkoutQueue();
+    toast(`⭕ Unmarked ${exercise.name}`);
+  }
+}
+
+// View full session details modal
+// View full session details modal
+function viewSessionDetails(sessionIndex) {
+  const { sessions } = getData();
+  const session = sessions[sessionIndex];
+  if (!session) return;
+  
+  const modalBody = document.getElementById('session-modal-body');
+  const modalTitle = document.getElementById('session-modal-title');
+  
+  modalTitle.textContent = `${formatDate(session.date)} - Workout Details`;
+  
+  // Calculate totals
+  let totalSets = 0;
+  let totalWeight = 0;
+  
+  session.exercises?.forEach(ex => {
+    if (!ex.isCardio && ex.sets) {
+      ex.sets.forEach(set => {
+        if (set.done) {
+          totalSets++;
+          totalWeight += (set.weight || 0);
+        }
+      });
+    } else if (ex.isCardio) {
+      totalSets++;
+    }
+  });
+  
+  // Build exercises list
+  let exercisesHtml = `
+    <div class="session-summary">
+      <div class="session-summary-item">
+        <span class="session-summary-label">📅 Date & Time</span>
+        <span class="session-summary-value">${new Date(session.date).toLocaleString()}</span>
+      </div>
+      <div class="session-summary-item">
+        <span class="session-summary-label">💪 Exercises</span>
+        <span class="session-summary-value">${session.exercises?.length || 0}</span>
+      </div>
+      <div class="session-summary-item">
+        <span class="session-summary-label">🔢 Total Sets</span>
+        <span class="session-summary-value">${session.totalSets || totalSets}</span>
+      </div>
+      ${totalWeight > 0 ? `<div class="session-summary-item">
+        <span class="session-summary-label">🏋️ Total Volume</span>
+        <span class="session-summary-value">${totalWeight} kg</span>
+      </div>` : ''}
+    </div>
+  `;
+  
+  // Add each exercise with its sets
+  session.exercises?.forEach((exercise, exIdx) => {
+    const isCardio = exercise.isCardio;
+    const maxWeight = exercise.maxWeight || 0;
+    const completedSets = exercise.sets?.filter(s => s.done).length || 0;
+    const totalExerciseSets = exercise.sets?.length || 0;
+    
+    exercisesHtml += `
+      <div class="exercise-group" style="margin-top: 20px;">
+        <div class="exercise-group-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>${isCardio ? '🏃' : '💪'} ${escHtml(exercise.name)}</span>
+          <span style="font-size: 11px; color: var(--accent);">${completedSets}/${totalExerciseSets} sets done</span>
+        </div>
+        <div style="background: var(--bg3); border-radius: var(--radius-sm); padding: 8px;">
+    `;
+    
+    if (isCardio) {
+      const set = exercise.sets?.[0] || {};
+      exercisesHtml += `
+        <div style="padding: 12px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>⏱ Duration</span>
+            <span style="font-weight: 700; color: var(--accent);">${set.duration || 0} minutes</span>
+          </div>
+          ${set.distance ? `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>📏 Distance</span>
+            <span style="font-weight: 700;">${set.distance} km</span>
+          </div>` : ''}
+          ${set.intensity ? `<div style="display: flex; justify-content: space-between;">
+            <span>⚡ Intensity</span>
+            <span style="font-weight: 700;">${set.intensity}/10</span>
+          </div>` : ''}
+        </div>
+      `;
+    } else {
+      if (exercise.sets && exercise.sets.length > 0) {
+        exercisesHtml += `
+          <div class="set-labels" style="padding: 0 8px; margin-bottom: 8px; display: grid; grid-template-columns: 40px 1fr 1fr 40px; gap: 8px;">
+            <span>Set</span><span>Weight (kg)</span><span>Reps</span><span>✓</span>
+          </div>
+        `;
+        
+        exercise.sets.forEach((set, setIdx) => {
+          const isDone = set.done;
+          exercisesHtml += `
+            <div class="set-row" style="opacity: ${isDone ? 1 : 0.5}; padding: 4px 8px;">
+              <div class="set-num ${isDone ? 'done' : ''}" style="width: 32px; height: 32px; font-size: 12px;">${setIdx + 1}</div>
+              <div style="text-align: center; font-weight: 600;">${set.weight || 0}</div>
+              <div style="text-align: center; font-weight: 600;">${set.reps || 0}</div>
+              <div class="set-check ${isDone ? 'checked' : ''}" style="pointer-events: none; width: 24px; height: 24px;"></div>
+            </div>
+          `;
+        });
+        
+        if (maxWeight > 0) {
+          exercisesHtml += `
+            <div style="margin-top: 12px; padding: 10px; text-align: center; background: var(--accent-dim); border-radius: var(--radius-sm);">
+              🏆 Max Weight: <strong style="color: var(--accent); font-size: 16px;">${maxWeight} kg</strong>
+            </div>
+          `;
+        }
+      } else {
+        exercisesHtml += `
+          <div style="padding: 20px; text-align: center; color: var(--text3);">
+            No sets recorded for this exercise
+          </div>
+        `;
+      }
+    }
+    
+    exercisesHtml += `</div></div>`;
+  });
+  
+  modalBody.innerHTML = exercisesHtml;
+  openModal('session-modal');
+}
+
+// Quick log with prompt (⚡ button)
+function quickLogExercise(index) {
+  const exercise = workoutQueue[index];
+  if (!exercise) return;
+  
+  const isCardio = exercise.isCardio;
+  
+  if (isCardio) {
+    const duration = prompt(`Enter duration for ${exercise.name} (minutes):`, "30");
+    if (duration === null) return;
+    
+    const durationNum = parseInt(duration);
+    if (isNaN(durationNum) || durationNum <= 0) {
+      toast('Please enter a valid duration');
+      return;
+    }
+    
+    exercise.loggedSets = [{ duration: durationNum, distance: null, intensity: null, done: true }];
+    exercise.completed = true;
+    exercise.maxWeight = 0;
+    saveWorkoutQueue();
+    toast(`✅ Completed ${exercise.name}: ${durationNum} minutes`);
+    
+  } else {
+    const weight = prompt(`Enter weight for ${exercise.name} (kg):`, "60");
+    if (weight === null) return;
+    
+    const weightNum = parseFloat(weight);
+    if (isNaN(weightNum)) {
+      toast('Please enter a valid weight');
+      return;
+    }
+    
+    const reps = prompt(`Enter reps for ${exercise.name}:`, exercise.reps || "10");
+    if (reps === null) return;
+    
+    const repsNum = parseInt(reps);
+    if (isNaN(repsNum)) {
+      toast('Please enter valid reps');
+      return;
+    }
+    
+    const sets = exercise.sets || 3;
+    const loggedSets = [];
+    for (let i = 0; i < sets; i++) {
+      loggedSets.push({ weight: weightNum, reps: repsNum, done: true });
+    }
+    
+    exercise.loggedSets = loggedSets;
+    exercise.maxWeight = weightNum;
+    exercise.completed = true;
+    saveWorkoutQueue();
+    
+    const weightDisplay = weightNum === 0 ? 'Bodyweight' : `${weightNum}kg`;
+    toast(`✅ Completed ${exercise.name}: ${weightDisplay} × ${repsNum} reps`);
+    
+    // Update PR
+    if (weightNum > 0) {
+      const prs = getData().prs;
+      if (!prs[exercise.id] || weightNum > prs[exercise.id].weight) {
+        prs[exercise.id] = { weight: weightNum, date: new Date().toISOString(), name: exercise.name };
+        DB.set('prs', prs);
+        setTimeout(() => toast('🏆 New PR! ' + weightNum + 'kg'), 1000);
+      }
+    }
+  }
+  
+  if (typeof SoundManager !== 'undefined') SoundManager.playAdd();
 }
 
 // Call this after any dynamic content is loaded
