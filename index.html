@@ -53,11 +53,13 @@
         <div class="header-logo">
           <span class="logo-icon">💪</span>
           <span class="logo-text">Jim Buddy</span>
+                  <button class="icon-btn" id="streak-btn" title="Streak">🔥 <span id="streak-count">0</span></button>
         </div>
       </div>
       <div class="header-right">
         <button class="icon-btn" id="calculator-header-btn" title="Calorie Calculator" onclick="navigate('calculator')">🧮</button>
-        <button class="icon-btn" id="streak-btn" title="Streak">🔥 <span id="streak-count">0</span></button>
+                <button class="icon-btn" id="profile-badge-btn" title="Profiles" onclick="openProfileModal()">👤</button>
+
       </div>
     </header>
 
@@ -968,6 +970,64 @@
         <button class="btn btn-primary" style="width:100%" onclick="calculateAndSavePR()">Calculate & Save PR</button>
         <div id="rm-result" style="margin-top: 16px;"></div>
         <p style="font-size:11px; color:var(--text3); margin-top:12px; text-align:center;">Formula: Weight × (1 + Reps/30) - Epley formula</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Management Modal -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal modal--tall">
+      <div class="modal-header">
+        <h3>👤 My Profiles</h3>
+        <button class="icon-btn" onclick="closeModal('profile-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 16px;">
+          <button class="btn btn-primary" style="width:100%" onclick="openCreateProfileModal()">+ Create New Profile</button>
+        </div>
+        
+        <div id="profiles-list" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Profiles will be listed here dynamically -->
+        </div>
+        
+        <div class="profile-info-note" style="margin-top: 16px; padding: 12px; background: var(--accent-dim); border-radius: var(--radius-sm); font-size: 12px; color: var(--text2); text-align: center;">
+          💡 Profiles store your: Workout history, PRs, Weight logs, Calorie goals, Water settings, and Weekly schedule
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('profile-modal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Profile Modal -->
+  <div class="modal-overlay" id="create-profile-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="create-profile-title">Create New Profile</h3>
+        <button class="icon-btn" onclick="closeModal('create-profile-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Profile Name</label>
+          <input type="text" class="form-input" id="profile-name-input" placeholder="e.g., John, Competition Prep, Bulk Phase" maxlength="30" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Avatar (optional)</label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <span class="avatar-option" data-avatar="💪" onclick="selectAvatar('💪')" style="font-size: 28px; cursor: pointer; padding: 8px; border-radius: 50%; transition: all 0.2s;">💪</span>
+            <span class="avatar-option" data-avatar="🏋️" onclick="selectAvatar('🏋️')" style="font-size: 28px; cursor: pointer; padding: 8px; border-radius: 50%; transition: all 0.2s;">🏋️</span>
+            <span class="avatar-option" data-avatar="🏃" onclick="selectAvatar('🏃')" style="font-size: 28px; cursor: pointer; padding: 8px; border-radius: 50%; transition: all 0.2s;">🏃</span>
+            <span class="avatar-option" data-avatar="🥇" onclick="selectAvatar('🥇')" style="font-size: 28px; cursor: pointer; padding: 8px; border-radius: 50%; transition: all 0.2s;">🥇</span>
+            <span class="avatar-option" data-avatar="🔥" onclick="selectAvatar('🔥')" style="font-size: 28px; cursor: pointer; padding: 8px; border-radius: 50%; transition: all 0.2s;">🔥</span>
+            <span class="avatar-option" data-avatar="💯" onclick="selectAvatar('💯')" style="font-size: 28px; cursor: pointer; padding: 8px; border-radius: 50%; transition: all 0.2s;">💯</span>
+          </div>
+        </div>
+        <input type="hidden" id="selected-avatar" value="💪" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('create-profile-modal')">Cancel</button>
+        <button class="btn btn-primary" id="save-profile-btn" onclick="saveCurrentProfile()">Save Profile</button>
       </div>
     </div>
   </div>

@@ -3195,6 +3195,390 @@ if ('serviceWorker' in navigator) {
       console.log('Service Worker registration failed:', error);
     });
   });
+
+ // ══════════════════════════════════════════
+// PROFILE MANAGEMENT SYSTEM (FIXED)
+// ══════════════════════════════════════════
+
+let profiles = DB.get('profiles', []);
+let currentProfileId = DB.get('currentProfileId', null);
+let selectedAvatar = '💪';
+let editingProfileId = null;
+
+function selectAvatar(avatar) {
+  selectedAvatar = avatar;
+  document.querySelectorAll('.avatar-option').forEach(opt => {
+    opt.classList.remove('selected');
+    if (opt.getAttribute('data-avatar') === avatar) {
+      opt.classList.add('selected');
+    }
+  });
+  const hiddenInput = document.getElementById('selected-avatar');
+  if (hiddenInput) hiddenInput.value = avatar;
+}
+
+function openProfileModal() {
+  renderProfilesList();
+  openModal('profile-modal');
+}
+
+function openCreateProfileModal() {
+  editingProfileId = null;
+  selectedAvatar = '💪';
+  const titleEl = document.getElementById('create-profile-title');
+  if (titleEl) titleEl.textContent = 'Create New Profile';
+  const nameInput = document.getElementById('profile-name-input');
+  if (nameInput) nameInput.value = '';
+  const hiddenInput = document.getElementById('selected-avatar');
+  if (hiddenInput) hiddenInput.value = '💪';
+  document.querySelectorAll('.avatar-option').forEach(opt => {
+    opt.classList.remove('selected');
+    if (opt.getAttribute('data-avatar') === '💪') {
+      opt.classList.add('selected');
+    }
+  });
+  openModal('create-profile-modal');
+}
+
+function openEditProfileModal(profileId) {
+  const profile = profiles.find(p => p.id === profileId);
+  if (!profile) return;
+  editingProfileId = profileId;
+  selectedAvatar = profile.avatar || '💪';
+  const titleEl = document.getElementById('create-profile-title');
+  if (titleEl) titleEl.textContent = 'Edit Profile';
+  const nameInput = document.getElementById('profile-name-input');
+  if (nameInput) nameInput.value = profile.name;
+  const hiddenInput = document.getElementById('selected-avatar');
+  if (hiddenInput) hiddenInput.value = selectedAvatar;
+  document.querySelectorAll('.avatar-option').forEach(opt => {
+    opt.classList.remove('selected');
+    if (opt.getAttribute('data-avatar') === selectedAvatar) {
+      opt.classList.add('selected');
+    }
+  });
+  openModal('create-profile-modal');
+}
+
+function saveCurrentProfile() {
+  const profileName = document.getElementById('profile-name-input')?.value.trim();
+  if (!profileName) {
+    toast('Please enter a profile name');
+    return;
+  }
+
+  const avatar = document.getElementById('selected-avatar')?.value || '💪';
+
+  if (editingProfileId) {
+    // EDITING existing profile - update name/avatar only, keep data
+    const index = profiles.findIndex(p => p.id === editingProfileId);
+    if (index !== -1) {
+      // Save current data to old profile before updating
+      if (currentProfileId === editingProfileId) {
+        saveCurrentProfileData(editingProfileId);
+      }
+      
+      profiles[index] = {
+        ...profiles[index],
+        name: profileName,
+        avatar: avatar,
+        updatedAt: new Date().toISOString()
+      };
+      toast(`Profile "${profileName}" updated!`);
+    }
+  } else {
+    // CREATING new profile - create FRESH empty data
+    const newProfileId = 'profile_' + Date.now();
+    const newProfile = {
+      id: newProfileId,
+      name: profileName,
+      avatar: avatar,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    profiles.push(newProfile);
+    
+    // Create EMPTY data for the new profile (not copying current)
+    const emptyProfileData = {
+      id: newProfileId,
+      savedAt: new Date().toISOString(),
+      data: {
+        sessions: [],
+        prs: {},
+        weightLog: [],
+        weightLossGoal: null,
+        cardioLog: [],
+        cardioGoal: null,
+        waterLog: [],
+        settings: { waterGoal: 2000 },
+        weeklySchedule: { days: {} },
+        foodLog: [],
+        calorieGoals: { calories: 2000, protein: 150, carbs: 200, fats: 55 },
+        customFoods: [],
+        customWorkouts: [],
+        weeklyGoals: []
+      }
+    };
+    
+    let profilesData = DB.get('profilesData', {});
+    profilesData[newProfileId] = emptyProfileData;
+    DB.set('profilesData', profilesData);
+    
+    toast(`Profile "${profileName}" created!`);
+  }
+
+  DB.set('profiles', profiles);
+  closeModal('create-profile-modal');
+  renderProfilesList();
+  updateProfileBadge();
+}
+
+function applyProfile(profileId) {
+  const profile = profiles.find(p => p.id === profileId);
+  if (!profile) return;
+
+  // Save current profile data before switching
+  if (currentProfileId) {
+    saveCurrentProfileData(currentProfileId);
+  }
+
+  // Switch to new profile
+  currentProfileId = profileId;
+  DB.set('currentProfileId', currentProfileId);
+  
+  // Load the selected profile's data
+  loadProfileData(profileId);
+
+  toast(`Switched to profile: ${profile.name}`);
+  closeModal('profile-modal');
+  
+  // Refresh all UI
+  renderDashboard();
+  renderWorkouts();
+  renderProgress();
+  renderWeeklySchedule();
+  renderCalorieTracker();
+  renderWater();
+  renderGoals();
+  renderPRLists();
+  updateProfileBadge();
+}
+
+function saveCurrentProfileData(profileId) {
+  const profileData = {
+    id: profileId,
+    savedAt: new Date().toISOString(),
+    data: {
+      sessions: DB.get('sessions', []),
+      prs: DB.get('prs', {}),
+      weightLog: DB.get('weightLog', []),
+      weightLossGoal: DB.get('weightLossGoal', null),
+      cardioLog: DB.get('cardioLog', []),
+      cardioGoal: DB.get('cardioGoal', null),
+      waterLog: DB.get('waterLog', []),
+      settings: DB.get('settings', { waterGoal: 2000 }),
+      weeklySchedule: DB.get('weeklySchedule', { days: {} }),
+      foodLog: DB.get('foodLog', []),
+      calorieGoals: DB.get('calorieGoals', { calories: 2000, protein: 150, carbs: 200, fats: 55 }),
+      customFoods: DB.get('customFoods', []),
+      customWorkouts: DB.get('customWorkouts', []),
+      weeklyGoals: DB.get('weeklyGoals', [])
+    }
+  };
+
+  let profilesData = DB.get('profilesData', {});
+  profilesData[profileId] = profileData;
+  DB.set('profilesData', profilesData);
+}
+
+function loadProfileData(profileId) {
+  const profilesData = DB.get('profilesData', {});
+  const profileData = profilesData[profileId];
+
+  if (profileData && profileData.data) {
+    const data = profileData.data;
+    DB.set('sessions', data.sessions || []);
+    DB.set('prs', data.prs || {});
+    DB.set('weightLog', data.weightLog || []);
+    DB.set('weightLossGoal', data.weightLossGoal || null);
+    DB.set('cardioLog', data.cardioLog || []);
+    DB.set('cardioGoal', data.cardioGoal || null);
+    DB.set('waterLog', data.waterLog || []);
+    DB.set('settings', data.settings || { waterGoal: 2000 });
+    DB.set('weeklySchedule', data.weeklySchedule || { days: {} });
+    DB.set('foodLog', data.foodLog || []);
+    DB.set('calorieGoals', data.calorieGoals || { calories: 2000, protein: 150, carbs: 200, fats: 55 });
+    DB.set('customFoods', data.customFoods || []);
+    DB.set('customWorkouts', data.customWorkouts || []);
+    DB.set('weeklyGoals', data.weeklyGoals || []);
+  }
+}
+
+function deleteProfile(profileId) {
+  if (profiles.length === 1) {
+    toast('Cannot delete the last profile. Create another profile first.');
+    return;
+  }
+
+  if (!confirm('Delete this profile? All its data will be lost.')) return;
+
+  const profile = profiles.find(p => p.id === profileId);
+  profiles = profiles.filter(p => p.id !== profileId);
+  DB.set('profiles', profiles);
+
+  const profilesData = DB.get('profilesData', {});
+  delete profilesData[profileId];
+  DB.set('profilesData', profilesData);
+
+  if (currentProfileId === profileId && profiles.length > 0) {
+    currentProfileId = profiles[0].id;
+    DB.set('currentProfileId', currentProfileId);
+    loadProfileData(currentProfileId);
+    toast(`Switched to profile: ${profiles[0].name}`);
+    renderDashboard();
+    renderWorkouts();
+    renderProgress();
+    renderWeeklySchedule();
+    renderCalorieTracker();
+    renderWater();
+    renderGoals();
+    renderPRLists();
+  }
+
+  toast(`Profile "${profile.name}" deleted`);
+  renderProfilesList();
+  updateProfileBadge();
+}
+
+function renderProfilesList() {
+  const container = document.getElementById('profiles-list');
+  if (!container) return;
+
+  if (profiles.length === 0) {
+    container.innerHTML = '<p class="muted-text" style="text-align:center;">No profiles yet. Create your first profile!</p>';
+    return;
+  }
+
+  container.innerHTML = profiles.map(profile => {
+    const isCurrent = currentProfileId === profile.id;
+    const stats = getProfileStats(profile.id);
+    
+    return `
+      <div class="profile-card ${isCurrent ? 'current' : ''}">
+        <div class="profile-header">
+          <div class="profile-avatar">${profile.avatar || '💪'}</div>
+          <div class="profile-info">
+            <div class="profile-name">
+              ${escHtml(profile.name)}
+              ${isCurrent ? '<span class="current-badge">CURRENT</span>' : ''}
+            </div>
+            <div class="profile-stats">
+              ${stats.sessions} sessions · ${stats.prs} PRs
+            </div>
+            <div class="profile-stats">
+              Last active: ${formatDate(profile.updatedAt || profile.createdAt)}
+            </div>
+          </div>
+        </div>
+        <div class="profile-actions">
+          ${!isCurrent ? `<button class="btn btn-primary btn-sm" onclick="applyProfile('${profile.id}')">Apply</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="openEditProfileModal('${profile.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProfile('${profile.id}')">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function getProfileStats(profileId) {
+  const profilesData = DB.get('profilesData', {});
+  const profileData = profilesData[profileId];
+  if (profileData && profileData.data) {
+    return {
+      sessions: profileData.data.sessions?.length || 0,
+      prs: Object.keys(profileData.data.prs || {}).length || 0
+    };
+  }
+  return { sessions: 0, prs: 0 };
+}
+
+function updateProfileBadge() {
+  const currentProfile = profiles.find(p => p.id === currentProfileId);
+  const badgeBtn = document.getElementById('profile-badge-btn');
+  if (badgeBtn && currentProfile) {
+    badgeBtn.innerHTML = `${currentProfile.avatar || '👤'}`;
+    badgeBtn.title = `Profile: ${currentProfile.name}`;
+  } else if (badgeBtn) {
+    badgeBtn.innerHTML = `👤`;
+    badgeBtn.title = `Profiles`;
+  }
+}
+
+function initProfiles() {
+  if (profiles.length === 0) {
+    const defaultProfileId = 'profile_default';
+    const defaultProfile = {
+      id: defaultProfileId,
+      name: 'My Profile',
+      avatar: '💪',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    profiles = [defaultProfile];
+    DB.set('profiles', profiles);
+    
+    // Create empty data for default profile
+    const emptyProfileData = {
+      id: defaultProfileId,
+      savedAt: new Date().toISOString(),
+      data: {
+        sessions: [],
+        prs: {},
+        weightLog: [],
+        weightLossGoal: null,
+        cardioLog: [],
+        cardioGoal: null,
+        waterLog: [],
+        settings: { waterGoal: 2000 },
+        weeklySchedule: { days: {} },
+        foodLog: [],
+        calorieGoals: { calories: 2000, protein: 150, carbs: 200, fats: 55 },
+        customFoods: [],
+        customWorkouts: [],
+        weeklyGoals: []
+      }
+    };
+    
+    let profilesData = DB.get('profilesData', {});
+    profilesData[defaultProfileId] = emptyProfileData;
+    DB.set('profilesData', profilesData);
+    
+    if (!currentProfileId) {
+      currentProfileId = defaultProfileId;
+      DB.set('currentProfileId', currentProfileId);
+    }
+  }
+  
+  // Make sure current profile data is loaded
+  if (currentProfileId) {
+    loadProfileData(currentProfileId);
+  }
+  
+  updateProfileBadge();
+}
+
+// Initialize profiles
+initProfiles();
+
+// Make profile functions global
+window.openProfileModal = openProfileModal;
+window.openCreateProfileModal = openCreateProfileModal;
+window.openEditProfileModal = openEditProfileModal;
+window.saveCurrentProfile = saveCurrentProfile;
+window.applyProfile = applyProfile;
+window.deleteProfile = deleteProfile;
+window.selectAvatar = selectAvatar;
+
 }
 
 // Performance mode toggle
@@ -3211,6 +3595,7 @@ function togglePerformanceMode() {
     document.body.classList.remove('performance-mode');
     toast('✨ Full animations restored');
   }
+
 }
 
 // Apply performance mode on load

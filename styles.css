@@ -71,7 +71,8 @@ body {
 .icon-btn {
   background: none; border: none; color: var(--text2);
   font-size: 15px; font-weight: 600; cursor: pointer;
-  padding: 6px 10px; border-radius: var(--radius-sm);
+  padding: 6px 6px;
+    border-radius: 50%;
   transition: background var(--transition);
   font-family: var(--font);
 }
@@ -2932,7 +2933,7 @@ input[type="number"]::-webkit-inner-spin-button {
   }
   #sound-toggle-btn,
   #calculator-header-btn,
-  #streak-btn,#performance-mode-btn 
+  #streak-btn
   {
     padding: 4px 8px;
     font-size: 12px;
@@ -3067,13 +3068,13 @@ canvas {
 }
 
 /* Force visibility of performance button */
-#performance-mode-btn {
+/* #performance-mode-btn {
   background: none; border: none; color: var(--text2);
   font-size: 15px; font-weight: 600; cursor: pointer;
   padding: 6px 10px; border-radius: var(--radius-sm);
   transition: background var(--transition);
   font-family: var(--font);
-}
+} */
 
 /* Make sure header-left shows all buttons */
 .header-left {
@@ -3168,8 +3169,8 @@ canvas {
 
 /* Specific to performance button - make it stand out if needed */
 #performance-mode-btn {
-  background: var(--accent-dim) !important;
-  border-color: var(--accent) !important;
+  background: var(--card) !important;
+  border-color: none !important;
 }
 
 /* Extreme small screens - reduce padding but keep visible */
@@ -3211,4 +3212,111 @@ canvas {
     padding: 4px 8px !important;
     font-size: 14px !important;
   }
+}
+
+/* ══════════════════════════════════════════
+   PROFILE MANAGEMENT STYLES
+══════════════════════════════════════════ */
+
+#profile-badge-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #0A0A0F;
+  font-weight: 700;
+}
+
+.profile-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 14px;
+  transition: all var(--transition);
+}
+
+.profile-card.current {
+  border: 2px solid var(--accent);
+  background: linear-gradient(135deg, var(--accent-dim), rgba(0,180,216,0.05));
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profile-avatar {
+  font-size: 40px;
+  background: var(--bg3);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.current-badge {
+  background: var(--accent);
+  color: #0A0A0F;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.profile-stats {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-actions .btn {
+  flex: 1;
+  font-size: 12px;
+  padding: 6px 12px;
+}
+
+.avatar-option.selected {
+  background: var(--accent-dim);
+  border: 2px solid var(--accent);
+  transform: scale(1.1);
+  border-radius: 50%;
+}
+
+.profile-info-note {
+  background: var(--accent-dim);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 11px;
+  color: var(--text2);
+  text-align: center;
+}
+
+/* Profile badge animation */
+#profile-badge-btn {
+  transition: all 0.3s ease;
+}
+
+#profile-badge-btn:active {
+  transform: scale(0.95);
 }
